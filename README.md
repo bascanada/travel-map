@@ -1,38 +1,39 @@
-# sv
+# TravelMap site
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+## Introduction
 
-## Creating a project
+TravelMap is a template SvelteKit site for sharing travel timelines with pictures. Users can import the Docker image, modify a configuration file, build the static site, and host the output (e.g., on GitHub Pages).
 
-If you're seeing this, you've probably already done this step. Congrats!
+### Features
 
-```bash
-# create a new project in the current directory
-npx sv create
+* View the itinerary used during the trip.
+* See clusters of pictures at each stop, with links or names of places visited.
+* Track the travel day by day using a timeline.
+* Data conversion from providers (e.g., Google Takeout) is mostly automated via scripts, with manual review/editing for display accuracy. These scripts can be run with GitHub Actions.
+* Photo clustering is automatic (based on a configurable radius), with manual override options for special cases.
+* All data (timeline, images, clusters, etc.) is stored as static files (YAML or JSON) and accessed client-side.
 
-# create a new project in my-app
-npx sv create my-app
-```
+### Usage Workflow
 
-## Developing
+1. Import the Docker image and modify the configuration file to match your trip details and preferences.
+2. Use provided scripts to convert provider datasets (e.g., Google Takeout exports) into the required static data format. Scripts can be run locally or via GitHub Actions.
+3. Manually review and edit the generated data files for display accuracy if needed.
+4. Build the SvelteKit site to generate static output.
+5. Host the static site (e.g., on GitHub Pages).
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### Technical Details
 
-```bash
-npm run dev
+* No backend or paid infrastructure required; relies on existing services and static hosting.
+* Distributed as a Docker image for easy setup and reproducibility.
+* Written with SvelteKit, Tailwind, Skeleton, and TypeScript.
+* All data is stored as static YAML or JSON files and loaded client-side.
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+### Requirements
 
-## Building
+* The source code is deployable to a Docker image for others to build their website and deploy it to GitHub Pages.
+* Does not require any backend services, relies on existing infrastructure.
+* Written with SvelteKit, Tailwind and Skeleton.
+* Language is Typescript for all components.
+* All design must be fully responsive and work equally well on desktop and mobile devices.
 
-To create a production version of your app:
 
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
