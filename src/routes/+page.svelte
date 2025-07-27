@@ -2,4 +2,13 @@
   import Map from '../lib/Map.svelte';
 </script>
 
-<Map />
+<div class="map-wrapper">
+  <Map />
+</div>
+
+<style>
+  .map-wrapper {
+    width: 100%;
+    height: 100vh;
+  }
+</style>
