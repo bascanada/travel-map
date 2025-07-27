@@ -37,3 +37,17 @@ TravelMap is a template SvelteKit site for sharing travel timelines with picture
 * All design must be fully responsive and work equally well on desktop and mobile devices.
 
 
+
+
+
+
+
+
+
+
+# How to use the template
+
+
+1. Create the root config file
+2. Provide a travel-index (ref in the root config file)
+3. Provide a custom color theme for skeleton

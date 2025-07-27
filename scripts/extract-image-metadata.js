@@ -20,6 +20,7 @@ function debug(message, data) {
 /**
  * Get the GPS coordinates from EXIF data
  * Using a simpler approach that works for most camera formats
+ * Ensures that longitude is negative for western hemisphere (US, including Alabama)
  */
 function getGpsCoordinates(tags) {
   if (!tags.GPSLatitude || !tags.GPSLongitude) {
@@ -28,10 +29,23 @@ function getGpsCoordinates(tags) {
   
   try {
     // Get the decimal degrees directly from the description if available
-    // Based on the sample data, this should be the most reliable method
     if (tags.GPSLatitude.description && tags.GPSLongitude.description) {
       const lat = parseFloat(tags.GPSLatitude.description);
-      const lng = parseFloat(tags.GPSLongitude.description);
+      let lng = parseFloat(tags.GPSLongitude.description);
+      
+      // Apply cardinal direction adjustments
+      if (tags.GPSLongitudeRef && tags.GPSLongitudeRef.value && 
+          tags.GPSLongitudeRef.value.includes('W') && lng > 0) {
+        // For Western hemisphere (W), longitude should be negative
+        lng = -lng;
+      }
+      
+      // Apply Southern hemisphere adjustments if needed
+      if (tags.GPSLatitudeRef && tags.GPSLatitudeRef.value && 
+          tags.GPSLatitudeRef.value.includes('S') && lat > 0) {
+        // For Southern hemisphere (S), latitude should be negative
+        lat = -lat;
+      }
       
       if (!isNaN(lat) && !isNaN(lng)) {
         return { lat, lng };
@@ -41,6 +55,7 @@ function getGpsCoordinates(tags) {
     console.warn('GPS data found but could not be parsed from description');
     console.log('GPS Latitude:', JSON.stringify(tags.GPSLatitude));
     console.log('GPS Longitude:', JSON.stringify(tags.GPSLongitude));
+    console.log('GPS Latitude Ref:', JSON.stringify(tags.GPSLatitudeRef || 'N/A'));
     
     return null;
   } catch (error) {
