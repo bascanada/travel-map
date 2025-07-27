@@ -142,20 +142,22 @@ function generateRoutePath(clusters) {
 }
 
 /**
- * Generate a travel draft from metadata
- * @param {string} directoryPath - Path to the directory containing metadata
+ * Generate an itinerary draft from metadata
+ * @param {string} directoryPath - Path to the directory containing metadata (should be an itinerary folder)
+ * @param {string} travelId - ID of the parent travel
+ * @returns {Object} - Generated itinerary object
  */
-async function generateTravelDraft(directoryPath) {
+async function generateItineraryDraft(directoryPath, travelId) {
   try {
     const directoryName = path.basename(directoryPath);
     const metadataFilePath = path.join(directoryPath, `${directoryName}-metadata.json`);
     
     if (!fs.existsSync(metadataFilePath)) {
       console.error(`Metadata file not found: ${metadataFilePath}`);
-      return;
+      return null;
     }
     
-    console.log(`Generating travel draft from ${metadataFilePath}`);
+    console.log(`Generating itinerary draft from ${metadataFilePath}`);
     const metadata = await fs.readJson(metadataFilePath);
     
     // Get all photos with valid metadata
@@ -164,8 +166,8 @@ async function generateTravelDraft(directoryPath) {
     );
     
     if (validPhotos.length === 0) {
-      console.error('No valid photos with coordinates and date found.');
-      return;
+      console.error(`No valid photos with coordinates and date found in ${directoryPath}.`);
+      return null;
     }
     
     // Sort photos by date
@@ -187,10 +189,12 @@ async function generateTravelDraft(directoryPath) {
       routePath = generateRoutePath(photoClusters);
     }
     
+    const travelDirName = path.basename(path.dirname(directoryPath));
+    
     // Create the itinerary
     const itinerary = {
-      id: `itinerary-${directoryName}`,
-      name: `${directoryName} Itinerary`,
+      id: directoryName,
+      name: directoryName.replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase()),
       route: {
         start: {
           latitude: validPhotos[0].coordinates.lat,
@@ -208,95 +212,107 @@ async function generateTravelDraft(directoryPath) {
         ...cluster,
         photos: cluster.photos.map(photo => ({
           ...photo,
-          url: `test-data/${directoryName}/${photo.id}` // Update URL to include path
+          url: `test-data/${travelDirName}/${directoryName}/${photo.id}` // Update URL to include path
         }))
       })),
       independentPhotos: independentPhotos.map(photo => ({
         ...photo,
-        url: `test-data/${directoryName}/${photo.id}` // Update URL to include path
+        url: `test-data/${travelDirName}/${directoryName}/${photo.id}` // Update URL to include path
       })),
       description: `Auto-generated itinerary for ${directoryName}`
     };
     
-    // Create the travel document
+    // Write the itinerary file
+    const itineraryFilePath = path.join(directoryPath, `${directoryName}.json`);
+    await fs.writeJson(itineraryFilePath, itinerary, { spaces: 2 });
+    console.log(`Created itinerary draft: ${itineraryFilePath}`);
+    
+    return itinerary;
+    
+  } catch (error) {
+    console.error(`Error generating itinerary draft for ${directoryPath}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Generate a travel draft by processing all itinerary subdirectories
+ * @param {string} directoryPath - Path to the travel directory
+ */
+async function generateTravelDraft(directoryPath) {
+  try {
+    const directoryName = path.basename(directoryPath);
+    console.log(`Generating travel draft for ${directoryName}`);
+    
+    // Get all subdirectories (potential itineraries)
+    const items = await fs.readdir(directoryPath);
+    const subdirectories = [];
+    
+    for (const item of items) {
+      const itemPath = path.join(directoryPath, item);
+      const stats = await fs.stat(itemPath);
+      
+      if (stats.isDirectory()) {
+        subdirectories.push({
+          name: item,
+          path: itemPath
+        });
+      }
+    }
+    
+    if (subdirectories.length === 0) {
+      console.error(`No subdirectories (itineraries) found in ${directoryPath}`);
+      return;
+    }
+    
+    // Process each itinerary subdirectory
+    const itineraryNames = [];
+    let firstItineraryWithDates = null;
+    let lastItineraryWithDates = null;
+    
+    for (const subdir of subdirectories) {
+      const itinerary = await generateItineraryDraft(subdir.path, directoryName);
+      
+      if (itinerary) {
+        itineraryNames.push(subdir.name);
+        
+        // Track the earliest start date and latest end date
+        if (!firstItineraryWithDates || new Date(itinerary.startDate) < new Date(firstItineraryWithDates.startDate)) {
+          firstItineraryWithDates = itinerary;
+        }
+        
+        if (!lastItineraryWithDates || 
+           (itinerary.endDate && new Date(itinerary.endDate) > new Date(lastItineraryWithDates.endDate || lastItineraryWithDates.startDate))) {
+          lastItineraryWithDates = itinerary;
+        }
+      }
+    }
+    
+    if (itineraryNames.length === 0) {
+      console.error(`No valid itineraries generated for ${directoryPath}`);
+      return;
+    }
+    
+    // Create the travel document with references to the itineraries
     const travel = {
       id: directoryName,
       name: directoryName.replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase()),
-      startDate,
-      endDate,
-      itineraries: [itinerary],
+      startDate: firstItineraryWithDates ? firstItineraryWithDates.startDate : null,
+      endDate: lastItineraryWithDates ? lastItineraryWithDates.endDate || lastItineraryWithDates.startDate : null,
+      itineraries: itineraryNames,
       description: `Auto-generated travel document for ${directoryName}`
     };
     
     // Write the travel file
-    const travelFilePath = path.join(directoryPath, `${directoryName}.json`);
+    const travelFilePath = path.join(directoryPath, `travel.json`);
     await fs.writeJson(travelFilePath, travel, { spaces: 2 });
     console.log(`Created travel draft: ${travelFilePath}`);
-    
-    // Create or update travel index
-    await updateTravelIndex(directoryName, travel, travelFilePath);
     
   } catch (error) {
     console.error(`Error generating travel draft for ${directoryPath}:`, error);
   }
-}
-
-/**
- * Update the travel index with the new travel
- * @param {string} directoryName - Name of the travel directory
- * @param {Object} travel - Travel data
- * @param {string} travelFilePath - Path to the travel file
- */
-async function updateTravelIndex(directoryName, travel, travelFilePath) {
-  const indexPath = path.join(projectRoot, 'static', 'travel-index.json');
-  let index = { travels: [] };
-  
-  // Try to read existing index
-  if (fs.existsSync(indexPath)) {
-    try {
-      index = await fs.readJson(indexPath);
-    } catch (error) {
-      console.warn('Could not read existing index, creating new one');
-    }
-  }
-  
-  // Find if this travel already exists in the index
-  const existingEntryIndex = index.travels.findIndex(t => t.id === travel.id);
-  
-  // Get a cover photo URL if available
-  let coverPhotoUrl = null;
-  if (travel.itineraries[0].photoClusters.length > 0 && 
-      travel.itineraries[0].photoClusters[0].photos.length > 0) {
-    coverPhotoUrl = travel.itineraries[0].photoClusters[0].photos[0].url;
-  } else if (travel.itineraries[0].independentPhotos.length > 0) {
-    coverPhotoUrl = travel.itineraries[0].independentPhotos[0].url;
-  }
-  
-  const travelEntry = {
-    id: travel.id,
-    name: travel.name,
-    startDate: travel.startDate,
-    endDate: travel.endDate,
-    description: travel.description,
-    file: path.relative(path.join(projectRoot, 'static'), travelFilePath),
-    coverPhotoUrl
-  };
-  
-  if (existingEntryIndex >= 0) {
-    // Update existing entry
-    index.travels[existingEntryIndex] = travelEntry;
-  } else {
-    // Add new entry
-    index.travels.push(travelEntry);
-  }
-  
-  // Write updated index
-  await fs.writeJson(indexPath, index, { spaces: 2 });
-  console.log(`Updated travel index: ${indexPath}`);
-}
-
-/**
- * Process all directories in the test-data folder
+}/**
+ * Process all travel directories in the test-data folder
  */
 async function processAllDirectories() {
   const testDataDir = path.join(projectRoot, 'static', 'test-data');
@@ -321,8 +337,8 @@ async function processAllDirectories() {
 }
 
 /**
- * Process a specific directory
- * @param {string} directoryName - Name of directory to process
+ * Process a specific travel directory
+ * @param {string} directoryName - Name of travel directory to process
  */
 async function processDirectory(directoryName) {
   const testDataDir = path.join(projectRoot, 'static', 'test-data');
@@ -333,7 +349,7 @@ async function processDirectory(directoryName) {
     return;
   }
   
-  console.log(`Processing directory: ${directoryPath}`);
+  console.log(`Processing travel directory: ${directoryPath}`);
   await generateTravelDraft(directoryPath);
 }
 
@@ -345,10 +361,10 @@ async function main() {
   const args = process.argv.slice(2);
   
   if (args.length > 0) {
-    // Process specific directory
+    // Process specific travel directory
     await processDirectory(args[0]);
   } else {
-    // Process all directories
+    // Process all travel directories
     await processAllDirectories();
   }
 }

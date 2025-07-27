@@ -72,11 +72,15 @@ const projectRoot = path.resolve(__dirname, '..');
 
 /**
  * Process a directory to extract image metadata
+ * This function handles both travel directories and itinerary directories
  */
 async function processDirectory(directoryPath) {
   try {
     const items = await fs.readdir(directoryPath);
     const result = {};
+    
+    const directoryName = path.basename(directoryPath);
+    const parentDirName = path.basename(path.dirname(directoryPath));
     
     // Get subdirectories
     const subdirectories = [];
@@ -87,10 +91,21 @@ async function processDirectory(directoryPath) {
       if (stats.isDirectory()) {
         subdirectories.push(itemPath);
       } else if (stats.isFile()) {
-        // Process only image files (jpg, jpeg, png)
+        // Process only image/video files (jpg, jpeg, png, mp4)
         const ext = path.extname(itemPath).toLowerCase();
-        if (['.jpg', '.jpeg', '.png'].includes(ext)) {
+        if (['.jpg', '.jpeg', '.png', '.mp4'].includes(ext)) {
           try {
+            // Skip extracting metadata for video files, but still add them to the result
+            if (ext === '.mp4') {
+              result[item] = {
+                filename: item,
+                coordinates: null,
+                dateTime: null,
+                type: 'video'
+              };
+              continue;
+            }
+            
             const imageData = await fs.readFile(itemPath);
             const tags = ExifReader.load(imageData);
             
@@ -98,6 +113,7 @@ async function processDirectory(directoryPath) {
               filename: item,
               coordinates: null,
               dateTime: null,
+              type: 'image'
             };
             
             // Extract GPS coordinates if they exist
@@ -123,8 +139,8 @@ async function processDirectory(directoryPath) {
     }
     
     // Generate metadata JSON file for this directory
-    const directoryName = path.basename(directoryPath);
-    const outputFilePath = path.join(directoryPath, `${directoryName}-metadata.json`);
+    const metadataFileName = `${directoryName}-metadata.json`;
+    const outputFilePath = path.join(directoryPath, metadataFileName);
     
     await fs.writeJson(outputFilePath, result, { spaces: 2 });
     console.log(`Created metadata file: ${outputFilePath}`);
@@ -140,6 +156,71 @@ async function processDirectory(directoryPath) {
 }
 
 /**
+ * Generate travel index file
+ * Contains a list of all travel folders in test-data
+ */
+async function generateTravelIndex(testDataDir) {
+  try {
+    const items = await fs.readdir(testDataDir);
+    const travels = [];
+    
+    for (const item of items) {
+      const itemPath = path.join(testDataDir, item);
+      const stats = await fs.stat(itemPath);
+      
+      if (stats.isDirectory()) {
+        // Check if this directory has a travel.json file, indicating it's a travel directory
+        const travelJsonPath = path.join(itemPath, 'travel.json');
+        if (fs.existsSync(travelJsonPath)) {
+          try {
+            const travelData = await fs.readJson(travelJsonPath);
+            
+            // Find a cover photo from the first itinerary if available
+            let coverPhotoUrl = null;
+            if (travelData.itineraries && travelData.itineraries.length > 0) {
+              const firstItineraryDir = path.join(itemPath, travelData.itineraries[0]);
+              if (fs.existsSync(firstItineraryDir)) {
+                const itineraryFiles = await fs.readdir(firstItineraryDir);
+                const photoFile = itineraryFiles.find(file => 
+                  ['.jpg', '.jpeg', '.png'].includes(path.extname(file).toLowerCase())
+                );
+                if (photoFile) {
+                  coverPhotoUrl = `test-data/${item}/${travelData.itineraries[0]}/${photoFile}`;
+                }
+              }
+            }
+            
+            travels.push({
+              id: travelData.id,
+              name: travelData.name || item.replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase()),
+              startDate: travelData.startDate,
+              endDate: travelData.endDate,
+              description: travelData.description || `Travel to ${travelData.name || item}`,
+              file: `test-data/${item}/travel.json`,
+              coverPhotoUrl
+            });
+          } catch (error) {
+            console.error(`Error reading travel.json for ${item}:`, error.message);
+          }
+        }
+      }
+    }
+    
+    // Create the travel index file
+    const indexFile = {
+      travels: travels
+    };
+    
+    const indexPath = path.join(testDataDir, 'index.json');
+    await fs.writeJson(indexPath, indexFile, { spaces: 2 });
+    console.log(`Created travel index file: ${indexPath}`);
+    
+  } catch (error) {
+    console.error('Error generating travel index:', error);
+  }
+}
+
+/**
  * Main function
  */
 async function main() {
@@ -147,8 +228,13 @@ async function main() {
   console.log(`Starting metadata extraction for ${testDataDir}`);
   
   try {
+    // Process all directories recursively to extract metadata from images
     await processDirectory(testDataDir);
-    console.log('Metadata extraction completed successfully');
+    
+    // Generate travel index file after metadata has been extracted
+    await generateTravelIndex(testDataDir);
+    
+    console.log('Metadata extraction and travel index generation completed successfully');
   } catch (error) {
     console.error('Error during metadata extraction:', error);
   }

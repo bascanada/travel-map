@@ -47,7 +47,15 @@ TravelMap is a template SvelteKit site for sharing travel timelines with picture
 
 # How to use the template
 
-
 1. Create the root config file
 2. Provide a travel-index (ref in the root config file)
 3. Provide a custom color theme for skeleton
+4. Figure out what to do with the html metadata
+5. Provide override for all basic icons (logo , favicon , etc ...) from a structure of defined files , can be overwrite in the root config file
+
+
+# Docker images
+
+1. One for the site builder
+2. One for the image extraction scripts
+3. Or they are building together and i have 2 entrypoints scripts to either build the site or extract the data.

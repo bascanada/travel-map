@@ -43,6 +43,23 @@
     }
     
     return travel.itineraries.map((itinerary, index) => {
+      // Handle case where itinerary might not have route or path properties
+      if (!itinerary.route || (!itinerary.route.path && (!itinerary.route.start || !itinerary.route.end))) {
+        // If no route data is available, return a placeholder point
+        return {
+          type: 'Feature',
+          properties: {
+            name: itinerary.name || `Itinerary ${itinerary.id}`,
+            itineraryId: itinerary.id,
+            color: routeColors[index % routeColors.length]
+          },
+          geometry: {
+            type: 'LineString',
+            coordinates: [[-74.0060, 40.7128], [-74.0060, 40.7128]] // Default NYC coordinates
+          }
+        };
+      }
+      
       // Extract the path coordinates from the itinerary
       const coordinates: Coordinate[] = itinerary.route.path
         ? itinerary.route.path.map(point => [point.longitude, point.latitude])
@@ -101,42 +118,49 @@
     // Add markers for each photo cluster across all itineraries
     if (travel && travel.itineraries) {
       travel.itineraries.forEach(itinerary => {
-        if (itinerary.photoClusters) {
-          itinerary.photoClusters.forEach((cluster: PhotoCluster) => {
-            if (cluster.position) {
-              const markerElement = document.createElement('div');
-              markerElement.className = 'photo-marker';
-              markerElement.innerHTML = `
-                <div class="photo-marker-inner">
-                  <span>${cluster.photos.length}</span>
-                </div>
-              `;
-              
-              // Create and add the marker
-              const marker = new maplibregl.Marker(markerElement)
-                .setLngLat([cluster.position.longitude, cluster.position.latitude])
-                .addTo(map);
-              
-              // Add popup with information about the photo cluster
-              const clusterName = cluster.interestPointName || `Photo Cluster (${cluster.photos.length} photos)`;
-              const firstPhotoDate = new Date(cluster.photos[0].date).toLocaleDateString();
-              const itineraryName = itinerary.name || `Itinerary ${itinerary.id}`;
-              
-              const popup = new maplibregl.Popup({ offset: 25 })
-                .setHTML(`
-                  <h3>${clusterName}</h3>
-                  <p><strong>Itinerary:</strong> ${itineraryName}</p>
-                  <p><strong>Date:</strong> ${firstPhotoDate}</p>
-                  <p>${cluster.photos.length} photo${cluster.photos.length > 1 ? 's' : ''}</p>
-                `);
-              
-              marker.setPopup(popup);
-              
-              // Store the marker reference
-              markers = [...markers, marker];
+        // Skip if the itinerary has no photo clusters
+        if (!itinerary.photoClusters) return;
+        
+        itinerary.photoClusters.forEach((cluster: PhotoCluster) => {
+          if (cluster.position) {
+            const markerElement = document.createElement('div');
+            markerElement.className = 'photo-marker';
+            markerElement.innerHTML = `
+              <div class="photo-marker-inner">
+                <span>${cluster.photos.length}</span>
+              </div>
+            `;
+            
+            // Create and add the marker
+            const marker = new maplibregl.Marker(markerElement)
+              .setLngLat([cluster.position.longitude, cluster.position.latitude])
+              .addTo(map);
+            
+            // Add popup with information about the photo cluster
+            const clusterName = cluster.interestPointName || `Photo Cluster (${cluster.photos.length} photos)`;
+            
+            // Handle case where photos might be empty
+            let firstPhotoDate = 'Unknown';
+            if (cluster.photos && cluster.photos.length > 0 && cluster.photos[0].date) {
+              firstPhotoDate = new Date(cluster.photos[0].date).toLocaleDateString();
             }
-          });
-        }
+            
+            const itineraryName = itinerary.name || `Itinerary ${itinerary.id}`;
+            
+            const popup = new maplibregl.Popup({ offset: 25 })
+              .setHTML(`
+                <h3>${clusterName}</h3>
+                <p><strong>Itinerary:</strong> ${itineraryName}</p>
+                <p><strong>Date:</strong> ${firstPhotoDate}</p>
+                <p>${cluster.photos.length} photo${cluster.photos.length > 1 ? 's' : ''}</p>
+              `);
+            
+            marker.setPopup(popup);
+            
+            // Store the marker reference
+            markers = [...markers, marker];
+          }
+        });
       });
     }
   }
