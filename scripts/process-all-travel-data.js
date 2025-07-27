@@ -30,22 +30,27 @@ async function runScript(scriptPath, args = []) {
 /**
  * Main function - runs all scripts in sequence
  */
+
 async function main() {
   try {
     console.log('=== Starting Travel Data Processing ===');
-    
+
+    // Get the root path argument (if any)
+    const rootPath = process.argv[2];
+    const args = rootPath ? [rootPath] : [];
+
     // Step 1: Extract image metadata
     console.log('\n=== Step 1: Extracting Image Metadata ===');
-    await runScript(path.join(__dirname, 'extract-image-metadata.js'));
-    
+    await runScript(path.join(__dirname, 'extract-image-metadata.js'), args);
+
     // Step 2: Generate travel drafts
     console.log('\n=== Step 2: Generating Travel Drafts ===');
-    await runScript(path.join(__dirname, 'generate-travel-draft.js'));
-    
+    await runScript(path.join(__dirname, 'generate-travel-draft.js'), args);
+
     // Step 3: Update travel index
     console.log('\n=== Step 3: Updating Travel Index ===');
-    await runScript(path.join(__dirname, 'update-travel-index.js'));
-    
+    await runScript(path.join(__dirname, 'update-travel-index.js'), args);
+
     console.log('\n=== Travel Data Processing Complete ===');
   } catch (error) {
     console.error('Error in processing:', error);

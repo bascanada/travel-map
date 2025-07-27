@@ -66,7 +66,7 @@ function getGpsCoordinates(tags) {
 
 // Get the directory name
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.resolve(__dirname, '..');
+const projectRoot = process.cwd();
 
 
 
@@ -224,16 +224,23 @@ async function generateTravelIndex(testDataDir) {
  * Main function
  */
 async function main() {
-  const testDataDir = path.join(projectRoot, 'static', 'test-data');
+  // Accept a directory path as a command-line argument
+
+  const argPath = process.argv[2];
+  if (!argPath) {
+    throw new Error('You must provide a root data directory as the first argument. Example: node extract-image-metadata.js /app/data');
+  }
+  // Use absolute path if provided, otherwise resolve relative to CWD
+  const testDataDir = path.isAbsolute(argPath) ? argPath : path.resolve(process.cwd(), argPath);
   console.log(`Starting metadata extraction for ${testDataDir}`);
-  
+
   try {
     // Process all directories recursively to extract metadata from images
     await processDirectory(testDataDir);
-    
+
     // Generate travel index file after metadata has been extracted
     await generateTravelIndex(testDataDir);
-    
+
     console.log('Metadata extraction and travel index generation completed successfully');
   } catch (error) {
     console.error('Error during metadata extraction:', error);

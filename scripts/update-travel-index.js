@@ -78,10 +78,15 @@ async function updateTravelIndex(testDataDir) {
 /**
  * Main function
  */
+
 async function main() {
-  const testDataDir = path.join(projectRoot, 'static', 'test-data');
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    throw new Error('You must provide a root data directory as the first argument. Example: node update-travel-index.js /app/data');
+  }
+  const testDataDir = path.isAbsolute(args[0]) ? args[0] : path.resolve(process.cwd(), args[0]);
   console.log(`Updating travel index for ${testDataDir}`);
-  
+
   try {
     await updateTravelIndex(testDataDir);
     console.log('Travel index update completed successfully');

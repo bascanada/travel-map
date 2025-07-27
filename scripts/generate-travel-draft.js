@@ -314,22 +314,22 @@ async function generateTravelDraft(directoryPath) {
 }/**
  * Process all travel directories in the test-data folder
  */
-async function processAllDirectories() {
-  const testDataDir = path.join(projectRoot, 'static', 'test-data');
-  console.log(`Starting travel draft generation for ${testDataDir}`);
-  
+
+async function processAllDirectories(rootDir) {
+  console.log(`Starting travel draft generation for ${rootDir}`);
+
   try {
-    const items = await fs.readdir(testDataDir);
-    
+    const items = await fs.readdir(rootDir);
+
     for (const item of items) {
-      const itemPath = path.join(testDataDir, item);
+      const itemPath = path.join(rootDir, item);
       const stats = await fs.stat(itemPath);
-      
+
       if (stats.isDirectory()) {
         await generateTravelDraft(itemPath);
       }
     }
-    
+
     console.log('Travel draft generation completed successfully');
   } catch (error) {
     console.error('Error during travel draft generation:', error);
@@ -340,15 +340,15 @@ async function processAllDirectories() {
  * Process a specific travel directory
  * @param {string} directoryName - Name of travel directory to process
  */
-async function processDirectory(directoryName) {
-  const testDataDir = path.join(projectRoot, 'static', 'test-data');
-  const directoryPath = path.join(testDataDir, directoryName);
-  
+
+async function processDirectory(rootDir, directoryName) {
+  const directoryPath = path.join(rootDir, directoryName);
+
   if (!fs.existsSync(directoryPath)) {
     console.error(`Directory not found: ${directoryPath}`);
     return;
   }
-  
+
   console.log(`Processing travel directory: ${directoryPath}`);
   await generateTravelDraft(directoryPath);
 }
@@ -356,16 +356,21 @@ async function processDirectory(directoryName) {
 /**
  * Main function
  */
+
 async function main() {
   // Get command line arguments
   const args = process.argv.slice(2);
-  
-  if (args.length > 0) {
+  if (args.length === 0) {
+    throw new Error('You must provide a root data directory as the first argument. Example: node generate-travel-draft.js /app/data');
+  }
+  const rootDir = path.isAbsolute(args[0]) ? args[0] : path.resolve(process.cwd(), args[0]);
+
+  if (args.length > 1) {
     // Process specific travel directory
-    await processDirectory(args[0]);
+    await processDirectory(rootDir, args[1]);
   } else {
     // Process all travel directories
-    await processAllDirectories();
+    await processAllDirectories(rootDir);
   }
 }
 
