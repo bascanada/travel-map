@@ -1,8 +1,12 @@
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import config from './travel-site.config.js';
 
 export default defineConfig({
+	define: {
+		'__APP_CONFIG__': JSON.stringify(config)
+	},
 	plugins: [tailwindcss(), sveltekit()],
 	test: {
 		projects: [

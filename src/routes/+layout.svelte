@@ -6,25 +6,14 @@
 </script>
 
 <svelte:head>
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-	<title>Travel Explorer</title>
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+	<title>{__APP_CONFIG__.title}</title>
+	<link rel="icon" href={__APP_CONFIG__.favicon} />
 </svelte:head>
 
-<div class="app-container">
+<div class="flex min-h-screen flex-col bg-surface-100-800-token">
 	<Header />
-	<main>
+	<main class="flex-grow">
 		{@render children()}
 	</main>
 </div>
-
-<style>
-	.app-container {
-		display: flex;
-		flex-direction: column;
-		min-height: 100vh;
-	}
-	
-	main {
-		flex: 1;
-	}
-</style>
