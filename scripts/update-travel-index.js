@@ -11,7 +11,7 @@ const projectRoot = path.resolve(__dirname, '..');
  * Generate travel index file from existing travel.json files
  * @param {string} testDataDir - Path to the test-data directory
  */
-async function updateTravelIndex(testDataDir) {
+async function updateTravelIndex(testDataDir, urlRoot) {
   try {
     const items = await fs.readdir(testDataDir);
     const travels = [];
@@ -37,7 +37,7 @@ async function updateTravelIndex(testDataDir) {
                   ['.jpg', '.jpeg', '.png'].includes(path.extname(file).toLowerCase())
                 );
                 if (photoFile) {
-                  coverPhotoUrl = `test-data/${item}/${travelData.itineraries[0]}/${photoFile}`;
+                  coverPhotoUrl = `${urlRoot}/${item}/${travelData.itineraries[0]}/${photoFile}`;
                 }
               }
             }
@@ -48,7 +48,7 @@ async function updateTravelIndex(testDataDir) {
               startDate: travelData.startDate,
               endDate: travelData.endDate,
               description: travelData.description || `Travel to ${travelData.name || item}`,
-              file: `test-data/${item}/travel.json`,
+              file: `${urlRoot}/${item}/travel.json`,
               coverPhotoUrl
             });
             
@@ -85,10 +85,11 @@ async function main() {
     throw new Error('You must provide a root data directory as the first argument. Example: node update-travel-index.js /app/data');
   }
   const testDataDir = path.isAbsolute(args[0]) ? args[0] : path.resolve(process.cwd(), args[0]);
+  const urlRoot = path.basename(testDataDir);
   console.log(`Updating travel index for ${testDataDir}`);
 
   try {
-    await updateTravelIndex(testDataDir);
+    await updateTravelIndex(testDataDir, urlRoot);
     console.log('Travel index update completed successfully');
   } catch (error) {
     console.error('Error during travel index update:', error);

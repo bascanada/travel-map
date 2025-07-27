@@ -147,7 +147,7 @@ function generateRoutePath(clusters) {
  * @param {string} travelId - ID of the parent travel
  * @returns {Object} - Generated itinerary object
  */
-async function generateItineraryDraft(directoryPath, travelId) {
+async function generateItineraryDraft(directoryPath, travelId, urlRoot) {
   try {
     const directoryName = path.basename(directoryPath);
     const metadataFilePath = path.join(directoryPath, `${directoryName}-metadata.json`);
@@ -212,12 +212,12 @@ async function generateItineraryDraft(directoryPath, travelId) {
         ...cluster,
         photos: cluster.photos.map(photo => ({
           ...photo,
-          url: `test-data/${travelDirName}/${directoryName}/${photo.id}` // Update URL to include path
+          url: `${urlRoot}/${travelDirName}/${directoryName}/${photo.id}`
         }))
       })),
       independentPhotos: independentPhotos.map(photo => ({
         ...photo,
-        url: `test-data/${travelDirName}/${directoryName}/${photo.id}` // Update URL to include path
+        url: `${urlRoot}/${travelDirName}/${directoryName}/${photo.id}`
       })),
       description: `Auto-generated itinerary for ${directoryName}`
     };
@@ -239,7 +239,7 @@ async function generateItineraryDraft(directoryPath, travelId) {
  * Generate a travel draft by processing all itinerary subdirectories
  * @param {string} directoryPath - Path to the travel directory
  */
-async function generateTravelDraft(directoryPath) {
+async function generateTravelDraft(directoryPath, urlRoot) {
   try {
     const directoryName = path.basename(directoryPath);
     console.log(`Generating travel draft for ${directoryName}`);
@@ -271,7 +271,7 @@ async function generateTravelDraft(directoryPath) {
     let lastItineraryWithDates = null;
     
     for (const subdir of subdirectories) {
-      const itinerary = await generateItineraryDraft(subdir.path, directoryName);
+      const itinerary = await generateItineraryDraft(subdir.path, directoryName, urlRoot);
       
       if (itinerary) {
         itineraryNames.push(subdir.name);
@@ -315,7 +315,7 @@ async function generateTravelDraft(directoryPath) {
  * Process all travel directories in the test-data folder
  */
 
-async function processAllDirectories(rootDir) {
+async function processAllDirectories(rootDir, urlRoot) {
   console.log(`Starting travel draft generation for ${rootDir}`);
 
   try {
@@ -326,7 +326,7 @@ async function processAllDirectories(rootDir) {
       const stats = await fs.stat(itemPath);
 
       if (stats.isDirectory()) {
-        await generateTravelDraft(itemPath);
+        await generateTravelDraft(itemPath, urlRoot);
       }
     }
 
@@ -341,7 +341,7 @@ async function processAllDirectories(rootDir) {
  * @param {string} directoryName - Name of travel directory to process
  */
 
-async function processDirectory(rootDir, directoryName) {
+async function processDirectory(rootDir, directoryName, urlRoot) {
   const directoryPath = path.join(rootDir, directoryName);
 
   if (!fs.existsSync(directoryPath)) {
@@ -350,7 +350,7 @@ async function processDirectory(rootDir, directoryName) {
   }
 
   console.log(`Processing travel directory: ${directoryPath}`);
-  await generateTravelDraft(directoryPath);
+  await generateTravelDraft(directoryPath, urlRoot);
 }
 
 /**
@@ -364,13 +364,14 @@ async function main() {
     throw new Error('You must provide a root data directory as the first argument. Example: node generate-travel-draft.js /app/data');
   }
   const rootDir = path.isAbsolute(args[0]) ? args[0] : path.resolve(process.cwd(), args[0]);
+  const urlRoot = path.basename(rootDir);
 
   if (args.length > 1) {
     // Process specific travel directory
-    await processDirectory(rootDir, args[1]);
+    await processDirectory(rootDir, args[1], urlRoot);
   } else {
     // Process all travel directories
-    await processAllDirectories(rootDir);
+    await processAllDirectories(rootDir, urlRoot);
   }
 }
 

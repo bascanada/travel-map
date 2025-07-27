@@ -159,7 +159,7 @@ async function processDirectory(directoryPath) {
  * Generate travel index file
  * Contains a list of all travel folders in test-data
  */
-async function generateTravelIndex(testDataDir) {
+async function generateTravelIndex(testDataDir, urlRoot) {
   try {
     const items = await fs.readdir(testDataDir);
     const travels = [];
@@ -185,7 +185,7 @@ async function generateTravelIndex(testDataDir) {
                   ['.jpg', '.jpeg', '.png'].includes(path.extname(file).toLowerCase())
                 );
                 if (photoFile) {
-                  coverPhotoUrl = `test-data/${item}/${travelData.itineraries[0]}/${photoFile}`;
+                  coverPhotoUrl = `${urlRoot}/${item}/${travelData.itineraries[0]}/${photoFile}`;
                 }
               }
             }
@@ -196,7 +196,7 @@ async function generateTravelIndex(testDataDir) {
               startDate: travelData.startDate,
               endDate: travelData.endDate,
               description: travelData.description || `Travel to ${travelData.name || item}`,
-              file: `test-data/${item}/travel.json`,
+              file: `${urlRoot}/${item}/travel.json`,
               coverPhotoUrl
             });
           } catch (error) {
@@ -225,13 +225,13 @@ async function generateTravelIndex(testDataDir) {
  */
 async function main() {
   // Accept a directory path as a command-line argument
-
   const argPath = process.argv[2];
   if (!argPath) {
     throw new Error('You must provide a root data directory as the first argument. Example: node extract-image-metadata.js /app/data');
   }
   // Use absolute path if provided, otherwise resolve relative to CWD
   const testDataDir = path.isAbsolute(argPath) ? argPath : path.resolve(process.cwd(), argPath);
+  const urlRoot = path.basename(testDataDir);
   console.log(`Starting metadata extraction for ${testDataDir}`);
 
   try {
@@ -239,7 +239,7 @@ async function main() {
     await processDirectory(testDataDir);
 
     // Generate travel index file after metadata has been extracted
-    await generateTravelIndex(testDataDir);
+    await generateTravelIndex(testDataDir, urlRoot);
 
     console.log('Metadata extraction and travel index generation completed successfully');
   } catch (error) {
