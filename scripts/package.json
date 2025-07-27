@@ -1,0 +1,10 @@
+{
+  "name": "travel-site-scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "exifreader": "^4.17.0",
+    "fs-extra": "^11.2.0"
+  }
+}
