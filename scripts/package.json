@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "type": "module",
   "private": true,
+  "scripts": {
+    "extract-metadata": "node extract-image-metadata.js",
+    "generate-travel": "node generate-travel-draft.js",
+    "test-gps": "node test-gps-structure.js"
+  },
   "dependencies": {
     "exifreader": "^4.17.0",
     "fs-extra": "^11.2.0"
