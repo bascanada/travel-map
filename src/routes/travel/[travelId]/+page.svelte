@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import TravelMap from '$lib/TravelMap.svelte';
-  import PhotoSection from '$lib/PhotoSection.svelte';
   import TimelineSection from '$lib/TimelineSection.svelte';
   import PhotoSidePanel from '$lib/PhotoSidePanel.svelte';
   import type { Travel, Photo, PhotoCluster, Itinerary } from '$lib/types/travel-dataset';
@@ -228,27 +227,17 @@
       </div>
     </div>
     
-    <!-- Layout for Photos and Timeline -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <!-- Photos Section -->
-      <div class="card p-6">
-        <PhotoSection 
-          {travel}
-          {selectedPhotos}
-          onPhotoClick={handlePhotoClick}
-          onPhotoSelect={handlePhotoSelect}
-        />
-      </div>
-      
-      <!-- Timeline Section -->
-      <div class="card p-6">
-        <TimelineSection 
-          {travel}
-          {selectedItinerary}
-          onItinerarySelect={handleItinerarySelect}
-          onDayClick={handleDayClick}
-        />
-      </div>
+    <!-- Layout for Timeline (now includes photos) -->
+    <div class="card p-6">
+      <TimelineSection 
+        {travel}
+        {selectedItinerary}
+        {selectedPhotos}
+        onItinerarySelect={handleItinerarySelect}
+        onDayClick={handleDayClick}
+        onPhotoClick={handlePhotoClick}
+        onPhotoSelect={handlePhotoSelect}
+      />
     </div>
   {:else}
     <div class="text-center p-4">No travel data available</div>

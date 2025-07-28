@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { getImageUrl } from '$lib/imageUtils';
 	import type { TravelIndex, TravelIndexEntry } from '$lib/types/travel-index';
 
 	let travels: TravelIndexEntry[] = [];
@@ -44,7 +45,7 @@
 						<header>
 							{#if travel.coverPhotoUrl}
 								<img
-									src={travel.coverPhotoUrl}
+									src={getImageUrl(travel.coverPhotoUrl, 'medium')}
 									alt={travel.name}
 									crossorigin="anonymous"
 									class="h-48 w-full object-cover"
