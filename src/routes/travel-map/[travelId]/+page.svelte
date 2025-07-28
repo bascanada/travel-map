@@ -133,7 +133,7 @@
     </div>
     
     <!-- Map Section -->
-    <div class="section mb-8">
+    <div class="card p-6 mb-8">
       <h3 class="h3 mb-4">Map</h3>
       <div class="h-[500px] rounded-md overflow-hidden">
         <TravelMap 
@@ -147,7 +147,7 @@
     <!-- Layout for Photos and Timeline -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Photos Section -->
-      <div class="section">
+      <div class="card p-6">
         <PhotoSection 
           {travel}
           {selectedPhotos}
@@ -157,7 +157,7 @@
       </div>
       
       <!-- Timeline Section -->
-      <div class="section">
+      <div class="card p-6">
         <TimelineSection 
           {travel}
           {selectedItinerary}
@@ -171,11 +171,4 @@
   {/if}
 </div>
 
-<style>
-  .section {
-    background: white;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  }
-</style>
+<!-- No custom styles needed - using Skeleton + Tailwind -->

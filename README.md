@@ -35,3 +35,36 @@ TravelMap is a template SvelteKit site for sharing travel timelines with picture
 * Written with SvelteKit, Tailwind and Skeleton.
 * Language is Typescript for all components.
 * All design must be fully responsive and work equally well on desktop and mobile devices.
+
+## Development Guidelines
+
+### For AI/Copilot Assistance
+
+When working on this project, please follow these guidelines:
+
+#### **Design System & Styling**
+- **Always use Skeleton UI components** and Tailwind CSS instead of custom CSS
+- Check [Skeleton documentation](https://skeleton.dev) for available components before implementing custom solutions
+- Use Skeleton's built-in classes: `card`, `btn`, `variant-*`, `h1-h6`, `badge`, etc.
+- Minimize custom CSS - only use when absolutely necessary (e.g., map-specific styles)
+- Prefer Tailwind utility classes over custom styles
+
+#### **Component Architecture**
+- Keep components focused and single-purpose
+- Use TypeScript for all components and proper type definitions
+- Follow the established patterns in `src/lib/types/travel-dataset.ts`
+- Maintain responsive design for mobile and desktop
+
+#### **Code Organization**
+- Components go in `src/lib/`
+- Export new components in `src/lib/index.ts`
+- Use semantic file names and clear component structure
+- Prefer composition over large monolithic components
+
+#### **Technology Stack**
+- SvelteKit for the framework
+- TypeScript for type safety
+- Skeleton UI for components
+- Tailwind CSS for utilities
+- MapLibre GL for maps
+- No backend dependencies - static site only

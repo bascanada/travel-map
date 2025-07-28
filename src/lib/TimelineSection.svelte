@@ -88,10 +88,10 @@
   }
 </script>
 
-<div class="timeline-section">
-  <div class="timeline-header">
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
     <h3 class="h3">Timeline</h3>
-    <div class="timeline-stats">
+    <div class="flex items-center gap-2">
       {#if timelineData.length > 0}
         <span class="text-sm text-surface-500">
           {timelineData.length} itinerary{timelineData.length !== 1 ? 'ies' : ''}
@@ -101,36 +101,36 @@
   </div>
   
   {#if timelineData.length === 0}
-    <div class="empty-state">
+    <div class="card p-8">
       <p class="text-center text-surface-500">No itinerary data available for this travel.</p>
     </div>
   {:else}
-    <div class="itineraries">
+    <div class="space-y-4">
       {#each timelineData as { itinerary, color, days, totalPhotos }, index}
         {@const isExpanded = selectedItinerary === itinerary.id}
         
-        <div class="itinerary-card">
+        <div class="card">
           <button 
-            class="itinerary-header"
+            class="w-full p-4 hover:bg-surface-100-800-token transition-colors flex items-center justify-between"
             on:click={() => handleItineraryToggle(itinerary.id)}
           >
-            <div class="itinerary-info">
-              <div class="itinerary-color" style="background-color: {color};"></div>
-              <div class="itinerary-details">
+            <div class="flex items-center gap-4 text-left">
+              <div class="w-4 h-16 rounded-sm flex-shrink-0" style="background-color: {color};"></div>
+              <div class="flex flex-col gap-1">
                 <h4 class="h4">{itinerary.name || `Itinerary ${itinerary.id}`}</h4>
-                <p class="itinerary-dates">
+                <p class="text-sm text-surface-600">
                   {formatDateLong(new Date(itinerary.startDate))}
                   {#if itinerary.endDate && itinerary.endDate !== itinerary.startDate}
                     → {formatDateLong(new Date(itinerary.endDate))}
                   {/if}
                 </p>
-                <p class="itinerary-summary">
+                <p class="text-xs text-surface-500">
                   {days.length} day{days.length !== 1 ? 's' : ''} • {totalPhotos} photo{totalPhotos !== 1 ? 's' : ''}
                 </p>
               </div>
             </div>
             
-            <div class="expand-icon {isExpanded ? 'expanded' : ''}">
+            <div class="transition-transform duration-200 {isExpanded ? 'rotate-180' : ''}">
               <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
               </svg>
@@ -138,40 +138,40 @@
           </button>
           
           {#if isExpanded}
-            <div class="itinerary-timeline">
-              <div class="timeline-line" style="border-color: {color};"></div>
+            <div class="px-4 pb-4 relative">
+              <div class="absolute left-8 top-0 bottom-4 w-0.5 border-l-2" style="border-color: {color};"></div>
               
-              <div class="days-grid">
+              <div class="ml-12 space-y-2">
                 {#each days as day}
                   <button 
-                    class="day-card {day.photoCount > 0 ? 'has-photos' : ''}"
+                    class="card w-full p-3 hover:variant-soft-primary transition-colors flex items-center gap-4 text-left {day.photoCount > 0 ? 'variant-ghost-primary' : ''} {day.photoCount === 0 ? 'opacity-60' : ''}"
                     on:click={() => handleDayClick(day.dateString, itinerary)}
                     disabled={day.photoCount === 0}
                   >
-                    <div class="day-date">
-                      <div class="day-number">{day.date.getDate()}</div>
-                      <div class="day-month">{formatDateShort(day.date).split(' ')[0]}</div>
+                    <div class="flex flex-col items-center min-w-[3rem]">
+                      <div class="text-2xl font-bold leading-none">{day.date.getDate()}</div>
+                      <div class="text-xs text-surface-500 uppercase">{formatDateShort(day.date).split(' ')[0]}</div>
                     </div>
                     
-                    <div class="day-content">
-                      <div class="day-title">{formatDateShort(day.date)}</div>
+                    <div class="flex-1 space-y-1">
+                      <div class="font-medium">{formatDateShort(day.date)}</div>
                       
                       {#if day.photoCount > 0}
-                        <div class="day-photos">
+                        <div class="text-sm text-primary-600 font-medium">
                           {day.photoCount} photo{day.photoCount !== 1 ? 's' : ''}
                         </div>
                         
                         {#if day.photoClusters.length > 0}
-                          <div class="day-clusters">
+                          <div class="flex flex-wrap gap-1">
                             {#each day.photoClusters as cluster}
-                              <div class="cluster-tag">
+                              <span class="badge variant-soft-surface text-xs">
                                 {cluster.interestPointName || 'Unknown location'}
-                              </div>
+                              </span>
                             {/each}
                           </div>
                         {/if}
                       {:else}
-                        <div class="day-empty">No photos</div>
+                        <div class="text-sm text-surface-400 italic">No photos</div>
                       {/if}
                     </div>
                   </button>
@@ -185,200 +185,4 @@
   {/if}
 </div>
 
-<style>
-  .timeline-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .timeline-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .timeline-stats {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  
-  .empty-state {
-    padding: 2rem;
-    border: 1px solid rgb(var(--color-surface-300));
-    border-radius: 0.5rem;
-  }
-  
-  .itineraries {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .itinerary-card {
-    border: 1px solid rgb(var(--color-surface-300));
-    border-radius: 0.5rem;
-    overflow: hidden;
-  }
-  
-  .itinerary-header {
-    width: 100%;
-    padding: 1rem;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: background-color 0.2s ease;
-  }
-  
-  .itinerary-header:hover {
-    background-color: rgb(var(--color-surface-100));
-  }
-  
-  .itinerary-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    text-align: left;
-  }
-  
-  .itinerary-color {
-    width: 1rem;
-    height: 4rem;
-    border-radius: 0.25rem;
-    flex-shrink: 0;
-  }
-  
-  .itinerary-details {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  
-  .itinerary-dates {
-    font-size: 0.875rem;
-    color: rgb(var(--color-surface-600));
-  }
-  
-  .itinerary-summary {
-    font-size: 0.75rem;
-    color: rgb(var(--color-surface-500));
-  }
-  
-  .expand-icon {
-    transition: transform 0.2s ease;
-  }
-  
-  .expand-icon.expanded {
-    transform: rotate(180deg);
-  }
-  
-  .itinerary-timeline {
-    position: relative;
-    padding: 0 1rem 1rem;
-  }
-  
-  .timeline-line {
-    position: absolute;
-    left: 2rem;
-    top: 0;
-    bottom: 1rem;
-    width: 2px;
-    border-left: 2px solid rgb(var(--color-surface-300));
-  }
-  
-  .days-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-left: 3rem;
-  }
-  
-  .day-card {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem;
-    border: 1px solid rgb(var(--color-surface-200));
-    border-radius: 0.375rem;
-    background: white;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: left;
-  }
-  
-  .day-card:hover:not(:disabled) {
-    border-color: rgb(var(--color-primary-300));
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-  
-  .day-card.has-photos {
-    border-color: rgb(var(--color-primary-200));
-    background-color: rgb(var(--color-primary-50));
-  }
-  
-  .day-card:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-  
-  .day-date {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 3rem;
-  }
-  
-  .day-number {
-    font-size: 1.5rem;
-    font-weight: bold;
-    line-height: 1;
-  }
-  
-  .day-month {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    color: rgb(var(--color-surface-500));
-  }
-  
-  .day-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  
-  .day-title {
-    font-weight: 500;
-  }
-  
-  .day-photos {
-    font-size: 0.875rem;
-    color: rgb(var(--color-primary-600));
-    font-weight: 500;
-  }
-  
-  .day-empty {
-    font-size: 0.875rem;
-    color: rgb(var(--color-surface-400));
-    font-style: italic;
-  }
-  
-  .day-clusters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    margin-top: 0.25rem;
-  }
-  
-  .cluster-tag {
-    background-color: rgb(var(--color-surface-100));
-    color: rgb(var(--color-surface-700));
-    padding: 0.125rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-  }
-</style>
+<!-- No custom styles needed - using Skeleton + Tailwind -->

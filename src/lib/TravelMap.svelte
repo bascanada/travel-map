@@ -320,22 +320,13 @@
 
 <div 
   bind:this={mapContainer} 
-  class="map-container"
+  class="relative w-full h-full min-h-full rounded overflow-hidden shadow-md"
 >
   <!-- Map will be injected here -->
 </div>
 
 <style>
-  .map-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    min-height: 100%;
-    border-radius: 4px;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
+  /* MapLibre GL specific styles that can't be replaced with Tailwind */
   :global(.photo-marker) {
     cursor: pointer;
   }

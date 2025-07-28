@@ -65,10 +65,10 @@
   }
 </script>
 
-<div class="photo-section">
-  <div class="photo-section-header">
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
     <h3 class="h3">Photos</h3>
-    <div class="photo-stats">
+    <div class="flex items-center gap-2">
       {#if allPhotos.length > 0}
         <span class="text-sm text-surface-500">
           {allPhotos.length} photos total
@@ -81,20 +81,20 @@
   </div>
   
   {#if allPhotos.length === 0}
-    <div class="empty-state">
+    <div class="card p-8">
       <p class="text-center text-surface-500">No photos available for this travel.</p>
     </div>
   {:else}
-    <div class="photos-by-date">
+    <div class="space-y-6">
       {#each sortedDates as date}
         {@const datePhotos = photosByDate[date]}
         {@const datePhotoIds = datePhotos.map(({ photo }) => photo.id)}
         {@const allSelectedForDate = datePhotoIds.every(id => selectedPhotos.includes(id))}
         
-        <div class="date-section">
-          <div class="date-header">
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
             <h4 class="h4">{new Date(date).toLocaleDateString()}</h4>
-            <div class="date-actions">
+            <div class="flex items-center gap-3">
               <span class="text-xs text-surface-400">{datePhotos.length} photos</span>
               {#if onPhotoSelect}
                 <button 
@@ -107,46 +107,49 @@
             </div>
           </div>
           
-          <div class="photo-grid">
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {#each datePhotos as { photo, cluster, itinerary }}
               {@const isSelected = selectedPhotos.includes(photo.id)}
               
               <div 
-                class="photo-thumbnail {isSelected ? 'selected' : ''}"
+                class="card card-hover overflow-hidden cursor-pointer transition-all duration-200 border-2 {isSelected ? 'border-primary-500 shadow-lg' : 'border-transparent'}"
                 role="button"
                 tabindex="0"
                 on:click={() => handlePhotoClick(photo, cluster, itinerary)}
                 on:keydown={(e) => e.key === 'Enter' && handlePhotoClick(photo, cluster, itinerary)}
               >
-                <img 
-                  src={photo.url} 
-                  alt={photo.description || `Photo from ${cluster.interestPointName || 'travel'}`}
-                  loading="lazy"
-                />
-                
-                <div class="photo-overlay">
-                  <div class="photo-info">
-                    <p class="photo-location">
-                      {cluster.interestPointName || 'Unknown location'}
-                    </p>
-                    <p class="photo-itinerary">
-                      {itinerary.name || `Itinerary ${itinerary.id}`}
-                    </p>
-                  </div>
+                <div class="aspect-square relative group">
+                  <img 
+                    src={photo.url} 
+                    alt={photo.description || `Photo from ${cluster.interestPointName || 'travel'}`}
+                    loading="lazy"
+                    class="w-full h-full object-cover"
+                  />
                   
-                  {#if onPhotoSelect}
-                    <button 
-                      class="photo-select-btn"
-                      on:click|stopPropagation={() => togglePhotoSelection(photo.id)}
-                      aria-label={isSelected ? 'Deselect photo' : 'Select photo'}
-                    >
-                      <div class="select-indicator {isSelected ? 'selected' : ''}">
-                        {#if isSelected}
-                          ✓
-                        {/if}
-                      </div>
-                    </button>
-                  {/if}
+                  <div class="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-200 flex flex-col justify-between p-3">
+                    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <p class="text-white text-sm font-medium mb-1">
+                        {cluster.interestPointName || 'Unknown location'}
+                      </p>
+                      <p class="text-white text-xs opacity-80">
+                        {itinerary.name || `Itinerary ${itinerary.id}`}
+                      </p>
+                    </div>
+                    
+                    {#if onPhotoSelect}
+                      <button 
+                        class="self-end opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                        on:click|stopPropagation={() => togglePhotoSelection(photo.id)}
+                        aria-label={isSelected ? 'Deselect photo' : 'Select photo'}
+                      >
+                        <div class="w-6 h-6 rounded-full border-2 border-white {isSelected ? 'bg-primary-500 border-primary-500' : 'bg-black/20'} flex items-center justify-center text-white text-xs font-bold transition-all duration-200">
+                          {#if isSelected}
+                            ✓
+                          {/if}
+                        </div>
+                      </button>
+                    {/if}
+                  </div>
                 </div>
               </div>
             {/each}
@@ -157,155 +160,4 @@
   {/if}
 </div>
 
-<style>
-  .photo-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .photo-section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .photo-stats {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  
-  .empty-state {
-    padding: 2rem;
-    border: 1px solid rgb(var(--color-surface-300));
-    border-radius: 0.5rem;
-  }
-  
-  .photos-by-date {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  
-  .date-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .date-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .date-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  
-  .photo-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
-  }
-  
-  .photo-thumbnail {
-    position: relative;
-    aspect-ratio: 1;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    cursor: pointer;
-    background-color: rgb(var(--color-surface-200));
-    transition: all 0.2s ease;
-    border: 2px solid transparent;
-  }
-  
-  .photo-thumbnail:hover {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  }
-  
-  .photo-thumbnail.selected {
-    border-color: rgb(var(--color-primary-500));
-    box-shadow: 0 0 0 1px rgb(var(--color-primary-500));
-  }
-  
-  .photo-thumbnail img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  .photo-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0);
-    transition: all 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 0.75rem;
-  }
-  
-  .photo-thumbnail:hover .photo-overlay {
-    background-color: rgba(0, 0, 0, 0.6);
-  }
-  
-  .photo-info {
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-  
-  .photo-thumbnail:hover .photo-info {
-    opacity: 1;
-  }
-  
-  .photo-location {
-    color: white;
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-  }
-  
-  .photo-itinerary {
-    color: white;
-    font-size: 0.75rem;
-    opacity: 0.8;
-  }
-  
-  .photo-select-btn {
-    align-self: flex-end;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-  
-  .photo-thumbnail:hover .photo-select-btn,
-  .photo-thumbnail.selected .photo-select-btn {
-    opacity: 1;
-  }
-  
-  .select-indicator {
-    width: 1.5rem;
-    height: 1.5rem;
-    border-radius: 50%;
-    border: 2px solid white;
-    background-color: rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 0.75rem;
-    font-weight: bold;
-    transition: all 0.2s ease;
-  }
-  
-  .select-indicator.selected {
-    background-color: rgb(var(--color-primary-500));
-    border-color: rgb(var(--color-primary-500));
-  }
-</style>
+<!-- No custom styles needed - using Skeleton + Tailwind -->
