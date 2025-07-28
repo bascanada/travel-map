@@ -120,13 +120,28 @@ compress_image() {
     # Get original size
     original_size=$(get_file_size "$input_file")
     
-    # First, apply quality compression while preserving all EXIF (including orientation)
+    # First, use exiftool to auto-rotate the image pixels based on EXIF orientation
+    # This bakes the rotation into the actual image data, then removes the orientation tag
+    if command -v exiftool >/dev/null 2>&1; then
+        # Auto-rotate image based on EXIF orientation and remove EXIF data except orientation initially
+        exiftool -overwrite_original -orientation -n "$input_file" 2>/dev/null || true
+    fi
+    
+    # Use ImageMagick to auto-rotate if available (more reliable than exiftool for rotation)
+    if command -v magick >/dev/null 2>&1; then
+        # Auto-orient the image (rotates pixels and removes orientation EXIF)
+        magick "$input_file" -auto-orient "$input_file"
+    elif command -v convert >/dev/null 2>&1; then
+        # Older ImageMagick command
+        convert "$input_file" -auto-orient "$input_file"
+    fi
+    
+    # Now compress the properly oriented image
     jpegoptim --max=85 --preserve "$input_file"
     
-    # Then use exiftool to strip all EXIF except orientation if available
+    # Remove all remaining EXIF data since orientation is now baked into pixels
     if command -v exiftool >/dev/null 2>&1; then
-        # Keep only orientation, remove all other EXIF data
-        exiftool -overwrite_original -all= -orientation -n "$input_file" 2>/dev/null || true
+        exiftool -overwrite_original -all= "$input_file" 2>/dev/null || true
     fi
     
     # Get new size
@@ -154,9 +169,19 @@ if ! command -v jpegoptim &> /dev/null; then
     fi
 fi
 
-# Check if exiftool is available for selective EXIF removal
+# Check for ImageMagick (for proper image rotation)
+if ! command -v magick &> /dev/null && ! command -v convert &> /dev/null; then
+    echo "⚠️  ImageMagick not found. Image orientation may not be fixed properly."
+    if command -v brew &> /dev/null; then
+        echo "💡 Install with: brew install imagemagick"
+    elif command -v apk &> /dev/null; then
+        echo "💡 Install with: apk add --no-cache imagemagick"
+    fi
+fi
+
+# Check if exiftool is available for EXIF removal
 if ! command -v exiftool &> /dev/null; then
-    echo "⚠️  exiftool not found. Will compress without selective EXIF removal."
+    echo "⚠️  exiftool not found. EXIF data will not be removed."
     if command -v brew &> /dev/null; then
         echo "💡 Install with: brew install exiftool"
     elif command -v apk &> /dev/null; then

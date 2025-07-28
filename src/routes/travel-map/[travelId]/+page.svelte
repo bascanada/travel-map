@@ -1,13 +1,20 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import Map from '$lib/Map.svelte';
-  import type { Travel } from '$lib/types/travel-dataset';
+  import TravelMap from '$lib/TravelMap.svelte';
+  import PhotoSection from '$lib/PhotoSection.svelte';
+  import TimelineSection from '$lib/TimelineSection.svelte';
+  import type { Travel, Photo, PhotoCluster, Itinerary } from '$lib/types/travel-dataset';
   
   let travelId = '';
   let travel: Travel | null = null;
   let isLoading = true;
   let error: string | null = null;
+  
+  // State for component interactions
+  let selectedPhotos: string[] = [];
+  let selectedItinerary: string | null = null;
+  let selectedDate: string | null = null;
 
   // Helper function to fetch travel data
   async function fetchTravelData(id: string) {
@@ -64,6 +71,32 @@
       throw err;
     }
   }
+  
+  // Event handlers for component interactions
+  function handlePhotoClusterClick(cluster: PhotoCluster, itinerary: Itinerary) {
+    // Select all photos in the clicked cluster
+    const clusterPhotoIds = cluster.photos.map(photo => photo.id);
+    selectedPhotos = clusterPhotoIds;
+  }
+  
+  function handlePhotoClick(photo: Photo, cluster: PhotoCluster, itinerary: Itinerary) {
+    console.log('Photo clicked:', photo.id, 'from', cluster.interestPointName);
+    // Could open a photo viewer modal here
+  }
+  
+  function handlePhotoSelect(photoIds: string[]) {
+    selectedPhotos = photoIds;
+  }
+  
+  function handleItinerarySelect(itineraryId: string) {
+    selectedItinerary = itineraryId || null;
+  }
+  
+  function handleDayClick(date: string, itinerary: Itinerary) {
+    selectedDate = date;
+    console.log('Day clicked:', date, 'for itinerary:', itinerary.name);
+    // Could filter photos by date or scroll to that date in the photo section
+  }
 
   onMount(async () => {
     // Get the travelId from the URL
@@ -81,64 +114,68 @@
 </script>
 
 <div class="container mx-auto p-4">
-  <h1 class="h1">Travel Map: {travelId}</h1>
+  <h1 class="h1">Travel: {travelId}</h1>
   
   {#if isLoading}
     <div class="text-center p-4">Loading travel data...</div>
   {:else if error}
     <div class="alert variant-filled-error">{error}</div>
   {:else if travel}
-    <div class="mb-4">
+    <div class="mb-6">
       <h2 class="h2">{travel.name || 'Travel'}</h2>
       <p class="text-surface-500">
         {new Date(travel.startDate).toLocaleDateString()} 
         {travel.endDate ? `- ${new Date(travel.endDate).toLocaleDateString()}` : ''}
       </p>
       {#if travel.description}
-        <p class="italic">{travel.description}</p>
+        <p class="italic mt-2">{travel.description}</p>
       {/if}
     </div>
     
-    <div class="h-[500px] my-4 rounded-md overflow-hidden">
-      <Map {travel} />
+    <!-- Map Section -->
+    <div class="section mb-8">
+      <h3 class="h3 mb-4">Map</h3>
+      <div class="h-[500px] rounded-md overflow-hidden">
+        <TravelMap 
+          {travel} 
+          {selectedPhotos}
+          onPhotoClusterClick={handlePhotoClusterClick}
+        />
+      </div>
     </div>
     
-    <div>
-      <h3 class="h3">Itineraries</h3>
-      <ul class="list-none p-0">
-        {#each travel.itineraries as itinerary, index}
-          {@const colors = [
-            '#3887be', // Default blue
-            '#e55e5e', // Red
-            '#3bb2d0', // Light blue
-            '#8a2be2', // Purple
-            '#ff8c00', // Orange
-            '#006400', // Dark green
-            '#ff1493', // Pink
-            '#4b0082'  // Indigo
-          ]}
-          {@const routeColor = colors[index % colors.length]}
-          <li class="mb-2 p-2 border border-surface-300 rounded-md flex items-center">
-            <div class="w-3 h-10 rounded-sm mr-3" style="background-color: {routeColor};"></div>
-            <div class="flex-1">
-              <h4 class="h4">{itinerary.name || `Itinerary ${itinerary.id}`}</h4>
-              <p class="text-sm text-surface-500">
-                {new Date(itinerary.startDate).toLocaleDateString()}
-                {itinerary.endDate ? ` - ${new Date(itinerary.endDate).toLocaleDateString()}` : ''}
-              </p>
-              <p class="text-xs text-surface-400 mt-1">
-                {#if itinerary.photoClusters}
-                  {itinerary.photoClusters.reduce((total, cluster) => total + cluster.photos.length, 0)} photos
-                {:else}
-                  No photos
-                {/if}
-              </p>
-            </div>
-          </li>
-        {/each}
-      </ul>
+    <!-- Layout for Photos and Timeline -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Photos Section -->
+      <div class="section">
+        <PhotoSection 
+          {travel}
+          {selectedPhotos}
+          onPhotoClick={handlePhotoClick}
+          onPhotoSelect={handlePhotoSelect}
+        />
+      </div>
+      
+      <!-- Timeline Section -->
+      <div class="section">
+        <TimelineSection 
+          {travel}
+          {selectedItinerary}
+          onItinerarySelect={handleItinerarySelect}
+          onDayClick={handleDayClick}
+        />
+      </div>
     </div>
   {:else}
     <div class="text-center p-4">No travel data available</div>
   {/if}
 </div>
+
+<style>
+  .section {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+</style>

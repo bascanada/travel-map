@@ -11,6 +11,7 @@
     "update-index": "node update-travel-index.js"
   },
   "dependencies": {
+    "cloudinary": "^2.5.1",
     "exifreader": "^4.17.0",
     "fs-extra": "^11.2.0"
   }
