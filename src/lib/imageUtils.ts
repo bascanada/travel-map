@@ -8,7 +8,7 @@
  * @param {'thumbnail' | 'medium' | 'large' | 'original'} [size='medium'] - The desired image size
  * @returns {string} The complete image URL
  */
-export function getImageUrl(imagePath, size = 'medium') {
+export function getImageUrl(imagePath: string, size: 'thumbnail' | 'medium' | 'large' | 'original' = 'medium'): string {
 	if (!imagePath) return '';
 
 	// Get config from global __APP_CONFIG__
@@ -29,7 +29,17 @@ export function getImageUrl(imagePath, size = 'medium') {
 		const transformation = transformations?.[size] || transformations?.medium || '';
 		
 		// Remove any leading slash from imagePath for Cloudinary
-		const cleanPath = imagePath.replace(/^\/+/, '');
+		let cleanPath = imagePath.replace(/^\/+/, '');
+		
+		// Fix duplicated paths that might have occurred during upload
+		// Pattern: travel_id/itinerary/travel_id/itinerary/filename -> travel_id/itinerary/filename
+		const pathParts = cleanPath.split('/');
+		if (pathParts.length >= 4) {
+			// Check if we have a pattern like: usa_2025/alabama/usa_2025/alabama/filename
+			if (pathParts[0] === pathParts[2] && pathParts[1] === pathParts[3]) {
+				cleanPath = pathParts.slice(2).join('/'); // Remove the first two duplicated parts
+			}
+		}
 		
 		// If it's already a full Cloudinary URL, return as-is
 		if (imagePath.startsWith('https://res.cloudinary.com/')) {
@@ -53,7 +63,7 @@ export function getImageUrl(imagePath, size = 'medium') {
  * @param {string} imagePath - The image path
  * @returns {{thumbnail: string, medium: string, large: string, original: string}} Object with different image sizes
  */
-export function getResponsiveImageUrls(imagePath) {
+export function getResponsiveImageUrls(imagePath: string): { thumbnail: string, medium: string, large: string, original: string } {
 	return {
 		thumbnail: getImageUrl(imagePath, 'thumbnail'),
 		medium: getImageUrl(imagePath, 'medium'),
@@ -67,7 +77,7 @@ export function getResponsiveImageUrls(imagePath) {
  * @param {string} imagePath - The image path
  * @returns {string} srcset string for img element
  */
-export function getImageSrcSet(imagePath) {
+export function getImageSrcSet(imagePath: string): string {
 	const urls = getResponsiveImageUrls(imagePath);
 	
 	return [
@@ -82,7 +92,7 @@ export function getImageSrcSet(imagePath) {
  * @param {string} imagePath - The image path to check
  * @returns {boolean} True if it's a Cloudinary URL
  */
-export function isCloudinaryUrl(imagePath) {
+export function isCloudinaryUrl(imagePath: string): boolean {
 	return imagePath?.startsWith('https://res.cloudinary.com/');
 }
 
@@ -91,7 +101,7 @@ export function isCloudinaryUrl(imagePath) {
  * @param {string} localPath - Local file path (e.g., "/data/usa_2025/alabama/photo.jpg")
  * @returns {string} Cloudinary public ID (e.g., "usa_2025/alabama/photo")
  */
-export function localPathToCloudinaryId(localPath) {
+export function localPathToCloudinaryId(localPath: string): string {
 	// Remove leading slash and file extension
 	return localPath
 		.replace(/^\/+/, '')

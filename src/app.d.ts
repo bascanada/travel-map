@@ -8,6 +8,18 @@ declare global {
 		favicon: string;
 		travelIndex: string;
 		skeletonTheme: string;
+		images: {
+			provider: 'local' | 'cloudinary';
+			cloudinary?: {
+				baseUrl: string;
+				transformations?: {
+					thumbnail?: string;
+					medium?: string;
+					large?: string;
+					original?: string;
+				};
+			};
+		};
 	};
 
 	namespace App {

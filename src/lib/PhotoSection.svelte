@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { Travel, Photo, PhotoCluster, Itinerary } from './types/travel-dataset';
-  
-  export let travel: Travel | null = null;
+	import { getImageUrl } from './imageUtils';  export let travel: Travel | null = null;
   export let selectedPhotos: string[] = [];
   export let onPhotoClick: ((photo: Photo, cluster: PhotoCluster, itinerary: Itinerary) => void) | null = null;
   export let onPhotoSelect: ((photoIds: string[]) => void) | null = null;
@@ -120,9 +119,10 @@
               >
                 <div class="aspect-square relative group">
                   <img 
-                    src={photo.url} 
+                    src={photo.cloudinary?.thumbnail_url || getImageUrl(photo.url, 'thumbnail')} 
                     alt={photo.description || `Photo from ${cluster.interestPointName || 'travel'}`}
                     loading="lazy"
+                    crossorigin="anonymous"
                     class="w-full h-full object-cover"
                   />
                   

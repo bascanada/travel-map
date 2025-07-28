@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getImageUrl, getImageSrcSet } from './imageUtils.js';
+	import { getImageUrl, getImageSrcSet } from './imageUtils';
 
 	export let src: string;
 	export let size: 'thumbnail' | 'medium' | 'large' | 'original' = 'medium';
@@ -22,6 +22,7 @@
 		{sizes}
 		{alt}
 		{loading}
+		crossorigin="anonymous"
 		class={className}
 		{...$$restProps}
 	/>
@@ -30,6 +31,7 @@
 		src={imageUrl}
 		{alt}
 		{loading}
+		crossorigin="anonymous"
 		class={className}
 		{...$$restProps}
 	/>

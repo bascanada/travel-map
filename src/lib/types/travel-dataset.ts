@@ -14,6 +14,12 @@ export interface Photo {
   };
   date: string;
   description?: string;
+  cloudinary?: {
+    secure_url: string;
+    optimized_url: string;
+    thumbnail_url: string;
+    public_id: string;
+  };
   [key: string]: any;
 }
 

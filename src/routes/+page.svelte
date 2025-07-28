@@ -40,12 +40,13 @@
 		{:else}
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 				{#each travels as travel}
-					<a href={`/travel-map/${travel.id}`} class="card preset-filled-surface-100-900 border-[1px] border-surface-200-800 card-hover divide-surface-200-800 block max-w-md divide-y overflow-hidden">
+					<a href={`/travel/${travel.id}`} class="card preset-filled-surface-100-900 border-[1px] border-surface-200-800 card-hover divide-surface-200-800 block max-w-md divide-y overflow-hidden">
 						<header>
 							{#if travel.coverPhotoUrl}
 								<img
 									src={travel.coverPhotoUrl}
 									alt={travel.name}
+									crossorigin="anonymous"
 									class="h-48 w-full object-cover"
 								/>
 							{:else}
