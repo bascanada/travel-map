@@ -4,6 +4,7 @@
   import TravelMap from '$lib/TravelMap.svelte';
   import PhotoSection from '$lib/PhotoSection.svelte';
   import TimelineSection from '$lib/TimelineSection.svelte';
+  import PhotoSidePanel from '$lib/PhotoSidePanel.svelte';
   import type { Travel, Photo, PhotoCluster, Itinerary } from '$lib/types/travel-dataset';
   
   let travelId = '';
@@ -15,6 +16,30 @@
   let selectedPhotos: string[] = [];
   let selectedItinerary: string | null = null;
   let selectedDate: string | null = null;
+
+  // State for photo viewer
+  let selectedPhoto: Photo | null = null;
+  let selectedCluster: PhotoCluster | null = null;
+  let selectedPhotoItinerary: Itinerary | null = null;
+  let currentPhotoIndex: number = 0;
+  let allPhotosForNavigation: Array<{ photo: Photo, cluster: PhotoCluster, itinerary: Itinerary }> = [];
+
+  // Get all photos from all itineraries for navigation
+  $: allPhotosForNavigation = travel?.itineraries.flatMap(itinerary => 
+    itinerary.photoClusters.flatMap(cluster => 
+      cluster.photos.map(photo => ({
+        photo,
+        cluster,
+        itinerary
+      }))
+    )
+  ) || [];
+
+  // Navigation helpers
+  $: canNavigate = {
+    previous: currentPhotoIndex > 0,
+    next: currentPhotoIndex < allPhotosForNavigation.length - 1
+  };
 
   // Helper function to fetch travel data
   async function fetchTravelData(id: string) {
@@ -81,7 +106,18 @@
   
   function handlePhotoClick(photo: Photo, cluster: PhotoCluster, itinerary: Itinerary) {
     console.log('Photo clicked:', photo.id, 'from', cluster.interestPointName);
-    // Could open a photo viewer modal here
+    
+    // Find the index of this photo in the global photo list
+    const photoIndex = allPhotosForNavigation.findIndex(
+      item => item.photo.id === photo.id
+    );
+    
+    if (photoIndex !== -1) {
+      currentPhotoIndex = photoIndex;
+      selectedPhoto = photo;
+      selectedCluster = cluster;
+      selectedPhotoItinerary = itinerary;
+    }
   }
   
   function handlePhotoSelect(photoIds: string[]) {
@@ -96,6 +132,34 @@
     selectedDate = date;
     console.log('Day clicked:', date, 'for itinerary:', itinerary.name);
     // Could filter photos by date or scroll to that date in the photo section
+  }
+
+  // Photo viewer handlers
+  function closePhotoViewer() {
+    selectedPhoto = null;
+    selectedCluster = null;
+    selectedPhotoItinerary = null;
+    currentPhotoIndex = 0;
+  }
+
+  function showPreviousPhoto() {
+    if (canNavigate.previous) {
+      currentPhotoIndex--;
+      const photoData = allPhotosForNavigation[currentPhotoIndex];
+      selectedPhoto = photoData.photo;
+      selectedCluster = photoData.cluster;
+      selectedPhotoItinerary = photoData.itinerary;
+    }
+  }
+
+  function showNextPhoto() {
+    if (canNavigate.next) {
+      currentPhotoIndex++;
+      const photoData = allPhotosForNavigation[currentPhotoIndex];
+      selectedPhoto = photoData.photo;
+      selectedCluster = photoData.cluster;
+      selectedPhotoItinerary = photoData.itinerary;
+    }
   }
 
   onMount(async () => {
@@ -132,15 +196,35 @@
       {/if}
     </div>
     
-    <!-- Map Section -->
-    <div class="card p-6 mb-8">
-      <h3 class="h3 mb-4">Map</h3>
-      <div class="h-[500px] rounded-md overflow-hidden">
-        <TravelMap 
-          {travel} 
-          {selectedPhotos}
-          onPhotoClusterClick={handlePhotoClusterClick}
-        />
+    <!-- Map and Photo Viewer Layout -->
+    <div class="card overflow-hidden mb-8" style="height: 600px;">
+      <div class="h-full flex">
+        <!-- Map Section - takes remaining space or full width when no photo selected -->
+        <div class="flex-1 relative">
+          <div class="absolute inset-0">
+            <TravelMap 
+              {travel} 
+              {selectedPhotos}
+              {selectedPhoto}
+              onPhotoClusterClick={handlePhotoClusterClick}
+            />
+          </div>
+        </div>
+        
+        <!-- Photo Side Panel - only visible when photo is selected -->
+        {#if selectedPhoto}
+          <div class="w-96 flex-shrink-0">
+            <PhotoSidePanel 
+              {selectedPhoto}
+              cluster={selectedCluster}
+              itinerary={selectedPhotoItinerary}
+              {canNavigate}
+              onClose={closePhotoViewer}
+              onPrevious={showPreviousPhoto}
+              onNext={showNextPhoto}
+            />
+          </div>
+        {/if}
       </div>
     </div>
     

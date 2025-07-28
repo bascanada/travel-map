@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Travel, Photo, PhotoCluster, Itinerary } from './types/travel-dataset';
-	import { getImageUrl } from './imageUtils';  export let travel: Travel | null = null;
+  import { getImageUrl } from './imageUtils';
+  
+  export let travel: Travel | null = null;
   export let selectedPhotos: string[] = [];
   export let onPhotoClick: ((photo: Photo, cluster: PhotoCluster, itinerary: Itinerary) => void) | null = null;
   export let onPhotoSelect: ((photoIds: string[]) => void) | null = null;

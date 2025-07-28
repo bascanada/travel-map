@@ -12,7 +12,7 @@ export function getImageUrl(imagePath, size = 'medium') {
 	if (!imagePath) return '';
 
 	// Get config from global __APP_CONFIG__
-	const config = (globalThis as any).__APP_CONFIG__;
+	const config = globalThis.__APP_CONFIG__;
 	if (!config) {
 		console.warn('__APP_CONFIG__ not available, falling back to original path');
 		return imagePath;

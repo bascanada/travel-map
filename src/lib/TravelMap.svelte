@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import maplibregl from 'maplibre-gl';
   import 'maplibre-gl/dist/maplibre-gl.css';
-  import type { Travel, Itinerary, PhotoCluster } from './types/travel-dataset';
+  import type { Travel, Itinerary, PhotoCluster, Photo } from './types/travel-dataset';
 
   // Define types
   type Coordinate = [number, number];
@@ -24,6 +24,7 @@
   export let zoom: number = 5;
   export let travel: Travel | null = null;
   export let selectedPhotos: string[] = []; // IDs of photos to highlight
+  export let selectedPhoto: Photo | null = null; // Currently selected photo to center on
   export let onPhotoClusterClick: ((cluster: PhotoCluster, itinerary: Itinerary) => void) | null = null;
   
   // Array of colors for multiple itineraries
@@ -310,6 +311,15 @@
     if (travel) {
       addPhotoClusterMarkers(map, travel);
     }
+  }
+
+  // Center map on selected photo
+  $: if (map && map.loaded() && selectedPhoto && selectedPhoto.position) {
+    // Smoothly fly to the photo location, keeping current zoom
+    map.flyTo({
+      center: [selectedPhoto.position.longitude, selectedPhoto.position.latitude],
+      duration: 1000 // Animation duration in milliseconds
+    });
   }
 
   onDestroy(() => {
