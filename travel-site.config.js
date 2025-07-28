@@ -5,6 +5,7 @@
  *  logo: string;
  *  favicon: string;
  *  travelIndex: string;
+ *  basePath: string;
  *  skeletonTheme: string;
  *  images: {
  *    provider: 'local' | 'cloudinary';
@@ -24,10 +25,13 @@
 const config = {
 	title: 'Travel Site',
 	description: 'Share your travel adventures',
-	logo: '/favicon.svg',
-	favicon: '/favicon.svg',
-	travelIndex: '/data/index.json',
+	logo: 'favicon.svg',
+	favicon: 'favicon.svg',
+	travelIndex: 'data/index.json',
 	skeletonTheme: 'vintage',
+	
+	// Base path configuration for deployment
+	basePath: process.env.NODE_ENV === 'production' ? '/travel-map-template' : '',
 	
 	// Image hosting configuration
 	images: {

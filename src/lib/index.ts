@@ -1,5 +1,8 @@
 // place files you want to import through the `$lib` alias in this folder.
 
+// Path utilities
+export { getFullPath, getTravelIndexUrl, getLogoUrl, getFaviconUrl, getTravelUrl, getHomeUrl } from './pathUtils';
+
 // Image utilities
 export {
 	getImageUrl,

@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "vite build && npm run postbuild",
+		"build": "NODE_ENV=production vite build",
 		"postbuild": "rm -rf ./build/* || true && cp -r ./.output/* ./build/",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
@@ -30,6 +30,7 @@
 		"@tailwindcss/vite": "^4.0.0",
 		"@types/node": "^24.1.0",
 		"@vitest/browser": "^3.2.3",
+		"cross-env": "^10.0.0",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",

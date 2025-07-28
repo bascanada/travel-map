@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
+  import { getFullPath, getTravelIndexUrl } from '$lib';
   import TravelMap from '$lib/TravelMap.svelte';
   import TimelineSection from '$lib/TimelineSection.svelte';
   import PhotoSidePanel from '$lib/PhotoSidePanel.svelte';
@@ -44,7 +45,7 @@
   async function fetchTravelData(id: string) {
     try {
       // First, fetch the index to get the travel file location
-      const indexResponse = await fetch(__APP_CONFIG__.travelIndex);
+      const indexResponse = await fetch(getTravelIndexUrl());
       if (!indexResponse.ok) {
         throw new Error(`Failed to load travel index: ${indexResponse.statusText}`);
       }
@@ -57,7 +58,7 @@
       }
       
       // Now fetch the specific travel file
-      const travelResponse = await fetch(`/${travelEntry.file}`);
+      const travelResponse = await fetch(getFullPath(travelEntry.file));
       if (!travelResponse.ok) {
         throw new Error(`Failed to load travel data: ${travelResponse.statusText}`);
       }
@@ -75,8 +76,8 @@
         
         // Fetch all itineraries in parallel
         const itineraryPromises = travelData.itineraries.map(async (itineraryId: string) => {
-          const itineraryPath = `/${basePath}${itineraryId}/${itineraryId}.json`;
-          const response = await fetch(itineraryPath);
+          const itineraryPath = `${basePath}${itineraryId}/${itineraryId}.json`;
+          const response = await fetch(getFullPath(itineraryPath));
           if (!response.ok) {
             console.warn(`Could not load itinerary: ${itineraryId}`);
             return null;

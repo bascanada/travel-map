@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getImageUrl } from '$lib/imageUtils';
+	import { getImageUrl, getTravelIndexUrl, getTravelUrl } from '$lib';
 	import type { TravelIndex, TravelIndexEntry } from '$lib/types/travel-index';
 
 	let travels: TravelIndexEntry[] = [];
@@ -9,7 +9,7 @@
 
 	onMount(async () => {
 		try {
-			const response = await fetch(__APP_CONFIG__.travelIndex);
+			const response = await fetch(getTravelIndexUrl());
 			if (!response.ok) {
 				throw new Error(`Failed to load travel index: ${response.statusText}`);
 			}
@@ -41,7 +41,7 @@
 		{:else}
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 				{#each travels as travel}
-					<a href={`/travel/${travel.id}`} class="card preset-filled-surface-100-900 border-[1px] border-surface-200-800 card-hover divide-surface-200-800 block max-w-md divide-y overflow-hidden">
+					<a href={getTravelUrl(travel.id)} class="card preset-filled-surface-100-900 border-[1px] border-surface-200-800 card-hover divide-surface-200-800 block max-w-md divide-y overflow-hidden">
 						<header>
 							{#if travel.coverPhotoUrl}
 								<img

@@ -7,6 +7,7 @@ declare global {
 		logo: string;
 		favicon: string;
 		travelIndex: string;
+		basePath: string;
 		skeletonTheme: string;
 		images: {
 			provider: 'local' | 'cloudinary';
