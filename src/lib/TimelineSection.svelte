@@ -4,11 +4,9 @@
   
   export let travel: Travel | null = null;
   export let selectedItinerary: string | null = null;
-  export let selectedPhotos: string[] = [];
   export let onItinerarySelect: ((itineraryId: string) => void) | null = null;
   export let onDayClick: ((date: string, itinerary: Itinerary) => void) | null = null;
   export let onPhotoClick: ((photo: Photo, cluster: PhotoCluster, itinerary: Itinerary) => void) | null = null;
-  export let onPhotoSelect: ((photoIds: string[]) => void) | null = null;
   
   // Array of colors for multiple itineraries (same as in TravelMap)
   const routeColors = [
@@ -48,12 +46,15 @@
       
       const photoCount = dayPhotoClusters.reduce((sum, cluster) => sum + cluster.photos.length, 0);
       
-      days.push({
-        date: new Date(currentDate),
-        dateString,
-        photoClusters: dayPhotoClusters,
-        photoCount
-      });
+      // Only include days with photos
+      if (photoCount > 0) {
+        days.push({
+          date: new Date(currentDate),
+          dateString,
+          photoClusters: dayPhotoClusters,
+          photoCount
+        });
+      }
       
       currentDate.setDate(currentDate.getDate() + 1);
     }
@@ -82,16 +83,6 @@
     onPhotoClick?.(photo, cluster, itinerary);
   }
   
-  function togglePhotoSelection(photoId: string) {
-    if (!onPhotoSelect) return;
-    
-    const newSelection = selectedPhotos.includes(photoId)
-      ? selectedPhotos.filter(id => id !== photoId)
-      : [...selectedPhotos, photoId];
-    
-    onPhotoSelect(newSelection);
-  }
-  
   function formatDateShort(date: Date): string {
     return date.toLocaleDateString('en-US', { 
       month: 'short', 
@@ -117,9 +108,6 @@
           {timelineData.length} itinerary{timelineData.length !== 1 ? 'ies' : ''}
           {#if totalPhotos > 0}
             • {totalPhotos} photos
-            {#if selectedPhotos.length > 0}
-              • {selectedPhotos.length} selected
-            {/if}
           {/if}
         </span>
       {/if}
@@ -172,9 +160,8 @@
                   <div class="space-y-3">
                     <!-- Day header -->
                     <button 
-                      class="card w-full p-3 hover:variant-soft-primary transition-colors flex items-center gap-4 text-left {day.photoCount > 0 ? 'variant-ghost-primary' : ''} {day.photoCount === 0 ? 'opacity-60' : ''}"
+                      class="card w-full p-3 hover:variant-soft-primary transition-colors flex items-center gap-4 text-left variant-ghost-primary"
                       on:click={() => handleDayClick(day.dateString, itinerary)}
-                      disabled={day.photoCount === 0}
                     >
                       <div class="flex flex-col items-center min-w-[3rem]">
                         <div class="text-2xl font-bold leading-none text-on-surface-token">{day.date.getDate()}</div>
@@ -184,40 +171,39 @@
                       <div class="flex-1 space-y-1">
                         <div class="font-medium text-on-surface-token">{formatDateShort(day.date)}</div>
                         
-                        {#if day.photoCount > 0}
-                          <div class="text-sm text-primary-600-300-token font-medium">
-                            {day.photoCount} photo{day.photoCount !== 1 ? 's' : ''}
-                          </div>
-                          
-                          {#if day.photoClusters.length > 0}
-                            <div class="flex flex-wrap gap-1">
-                              {#each day.photoClusters as cluster}
+                        <div class="text-sm text-primary-600-300-token font-medium">
+                          {day.photoCount} photo{day.photoCount !== 1 ? 's' : ''}
+                        </div>
+                        
+                        {#if day.photoClusters.length > 0}
+                          <div class="flex flex-wrap gap-1">
+                            {#each day.photoClusters as cluster}
+                              {#if cluster.interestPointName}
                                 <span class="badge variant-soft-surface text-xs">
-                                  {cluster.interestPointName || 'Unknown location'}
+                                  {cluster.interestPointName}
                                 </span>
-                              {/each}
-                            </div>
-                          {/if}
-                        {:else}
-                          <div class="text-sm text-surface-400-500-token italic">No photos</div>
+                              {/if}
+                            {/each}
+                          </div>
                         {/if}
                       </div>
                     </button>
 
                     <!-- Photos for this day -->
                     {#if day.photoCount > 0}
-                          <div class="ml-16 space-y-3">
+                          <div class="ml-16 space-y-4">
                         {#each day.photoClusters as cluster}
                           {#if cluster.photos.length > 0}
-                            <div class="space-y-2">
-                              <div class="text-sm font-medium text-surface-600-300-token">
-                                📍 {cluster.interestPointName || 'Unknown location'}
-                              </div>                              <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+                            <div class="space-y-3">
+                              {#if cluster.interestPointName}
+                                <div class="text-sm font-medium text-surface-600-300-token">
+                                  📍 {cluster.interestPointName}
+                                </div>
+                              {/if}
+                              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                                 {#each cluster.photos as photo}
-                                  {@const isSelected = selectedPhotos.includes(photo.id)}
-                                  
                                   <div 
-                                    class="relative group cursor-pointer overflow-hidden rounded-md border-2 transition-all duration-200 {isSelected ? 'border-primary-500 shadow-lg' : 'border-transparent hover:border-surface-300'}"
+                                    class="relative group cursor-pointer overflow-hidden rounded-md hover:shadow-md transition-all duration-200"
                                     role="button"
                                     tabindex="0"
                                     on:click={() => handlePhotoClick(photo, cluster, itinerary)}
@@ -232,26 +218,12 @@
                                         class="w-full h-full object-cover"
                                       />
                                       
-                                      <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex flex-col justify-between p-1">
+                                      <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex flex-col justify-between p-2">
                                         <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                          <p class="text-white text-xs font-medium truncate leading-tight">
+                                          <p class="text-white text-sm font-medium truncate leading-tight">
                                             {new Date(photo.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                           </p>
                                         </div>
-                                        
-                                        {#if onPhotoSelect}
-                                          <button 
-                                            class="self-end opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                            on:click|stopPropagation={() => togglePhotoSelection(photo.id)}
-                                            aria-label={isSelected ? 'Deselect photo' : 'Select photo'}
-                                          >
-                                            <div class="w-3 h-3 rounded-full border border-white {isSelected ? 'bg-primary-500 border-primary-500' : 'bg-black/20'} flex items-center justify-center text-white text-xs font-bold transition-all duration-200">
-                                              {#if isSelected}
-                                                <span class="text-[8px]">✓</span>
-                                              {/if}
-                                            </div>
-                                          </button>
-                                        {/if}
                                       </div>
                                     </div>
                                   </div>

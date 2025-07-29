@@ -109,6 +109,9 @@
   function handlePhotoClick(photo: Photo, cluster: PhotoCluster, itinerary: Itinerary) {
     console.log('Photo clicked:', photo.id, 'from', cluster.interestPointName);
     
+    // Close sidebar when photo is selected to prevent collision
+    isSidebarOpen = false;
+    
     // Find the index of this photo in the global photo list
     const photoIndex = allPhotosForNavigation.findIndex(
       item => item.photo.id === photo.id
@@ -188,7 +191,7 @@
     <!-- Backdrop (for mobile) -->
     {#if isSidebarOpen}
       <div
-        class="fixed inset-0 z-10 bg-black/50 lg:hidden"
+        class="fixed inset-0 z-10 bg-black/50 xl:hidden"
         on:click={() => (isSidebarOpen = false)}
         role="presentation"
       ></div>
@@ -198,12 +201,12 @@
     <aside
       class="sidebar-bg scrollbar-none absolute z-20 h-full transform {isSidebarOpen
         ? 'translate-x-0'
-        : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 w-full sm:w-96 border-surface-200-700-token"
+        : '-translate-x-full'} transition-transform duration-300 ease-in-out xl:relative xl:translate-x-0 w-full sm:w-[45%] md:w-[40%] lg:w-[35%] xl:w-[30%] min-w-[360px] max-w-[600px] border-surface-200-700-token"
     >
       <div class="p-4 h-full overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
           <h2 class="h2 text-on-surface-token">Timeline</h2>
-          <button class="lg:hidden btn btn-sm" on:click={() => (isSidebarOpen = false)}>
+          <button class="xl:hidden btn btn-sm" on:click={() => (isSidebarOpen = false)}>
             <!-- Close Icon -->
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -220,11 +223,9 @@
         <TimelineSection
           {travel}
           {selectedItinerary}
-          {selectedPhotos}
           onItinerarySelect={handleItinerarySelect}
           onDayClick={handleDayClick}
           onPhotoClick={handlePhotoClick}
-          onPhotoSelect={handlePhotoSelect}
         />
       </div>
     </aside>
@@ -234,7 +235,7 @@
       <!-- Header -->
       <header class="card p-2 rounded-none flex items-center justify-between">
         <div class="flex items-center">
-          <button class="lg:hidden btn btn-sm mr-4" on:click={() => (isSidebarOpen = true)}>
+          <button class="xl:hidden btn btn-sm mr-4" on:click={() => (isSidebarOpen = true)}>
             <!-- Menu Icon -->
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -260,7 +261,7 @@
       </header>
 
       <!-- Map and Photo Panel Container -->
-      <div class="flex-1 flex overflow-hidden">
+      <div class="flex-1 flex overflow-hidden relative">
         <!-- Map Section -->
         <div class="flex-1 relative">
           <div class="absolute inset-0">
@@ -275,7 +276,21 @@
 
         <!-- Photo Side Panel -->
         {#if selectedPhoto}
-          <div class="w-96 flex-shrink-0 bg-surface-100-800-token overflow-y-auto">
+          <!-- Mobile: Overlay on top of map -->
+          <div class="absolute inset-0 z-30 bg-surface-50-900-token md:hidden">
+            <PhotoSidePanel
+              {selectedPhoto}
+              cluster={selectedCluster}
+              itinerary={selectedPhotoItinerary}
+              {canNavigate}
+              onClose={closePhotoViewer}
+              onPrevious={showPreviousPhoto}
+              onNext={showNextPhoto}
+            />
+          </div>
+          
+          <!-- Desktop: Side panel taking more space -->
+          <div class="hidden md:block w-[60%] lg:w-[55%] xl:w-[50%] min-w-[400px] max-w-[800px] flex-shrink-0 bg-surface-100-800-token overflow-y-auto">
             <PhotoSidePanel
               {selectedPhoto}
               cluster={selectedCluster}
