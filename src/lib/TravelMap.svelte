@@ -330,7 +330,7 @@
 
 <div 
   bind:this={mapContainer} 
-  class="relative w-full h-full min-h-full rounded overflow-hidden shadow-md"
+  class="relative w-full h-full min-h-full overflow-hidden shadow-md"
 >
   <!-- Map will be injected here -->
 </div>

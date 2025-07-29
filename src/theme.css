@@ -4,6 +4,10 @@
   all other themes and leave the desired theme uncommented.
 */
 
+/* Choose ONE theme only - commenting out all others */
+@import '@skeletonlabs/skeleton/themes/crimson';
+
+/* Other available themes (comment out the active one above and uncomment one below to switch):
 @import '@skeletonlabs/skeleton/themes/cerberus';
 @import '@skeletonlabs/skeleton/themes/catppuccin';
 @import '@skeletonlabs/skeleton/themes/crimson';
@@ -13,7 +17,6 @@
 @import '@skeletonlabs/skeleton/themes/legacy';
 @import '@skeletonlabs/skeleton/themes/mint';
 @import '@skeletonlabs/skeleton/themes/mona';
-@import '@skeletonlabs/skeleton/themes/modern';
 @import '@skeletonlabs/skeleton/themes/nosh';
 @import '@skeletonlabs/skeleton/themes/nouveau';
 @import '@skeletonlabs/skeleton/themes/pine';
@@ -26,3 +29,4 @@
 @import '@skeletonlabs/skeleton/themes/vintage';
 @import '@skeletonlabs/skeleton/themes/vox';
 @import '@skeletonlabs/skeleton/themes/wintry';
+*/

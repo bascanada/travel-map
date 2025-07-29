@@ -22,8 +22,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700 flex-shrink-0">
       <div class="flex-1 min-w-0">
-        <h3 class="h5 truncate">{cluster?.interestPointName || 'Photo'}</h3>
-        <p class="text-sm text-surface-500 truncate">
+        <h3 class="h5 truncate text-on-surface-token">{cluster?.interestPointName || 'Photo'}</h3>
+        <p class="text-sm text-surface-600-300-token truncate">
           {itinerary?.name || `Itinerary ${itinerary?.id}`}
         </p>
       </div>
@@ -79,15 +79,15 @@
     <!-- Photo details -->
     <div class="p-4 border-t border-surface-200 dark:border-surface-700 flex-shrink-0">
       <div class="space-y-2">
-        <div class="text-sm text-surface-500">
+        <div class="text-sm text-surface-600-300-token">
           📅 {new Date(selectedPhoto.date).toLocaleDateString()}
         </div>
         
         {#if selectedPhoto.description}
-          <p class="text-sm text-surface-700 dark:text-surface-300">{selectedPhoto.description}</p>
+          <p class="text-sm text-on-surface-token">{selectedPhoto.description}</p>
         {/if}
         
-        <div class="text-xs text-surface-400">
+        <div class="text-xs text-surface-500-400-token">
           📍 {selectedPhoto.position.latitude.toFixed(4)}, {selectedPhoto.position.longitude.toFixed(4)}
         </div>
       </div>

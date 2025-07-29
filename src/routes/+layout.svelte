@@ -13,7 +13,6 @@
 </svelte:head>
 
 <div class="flex min-h-screen flex-col bg-surface-100-800-token">
-	<Header />
 	<main class="flex-grow">
 		{@render children()}
 	</main>

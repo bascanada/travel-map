@@ -6,7 +6,9 @@
   import TimelineSection from '$lib/TimelineSection.svelte';
   import PhotoSidePanel from '$lib/PhotoSidePanel.svelte';
   import type { Travel, Photo, PhotoCluster, Itinerary } from '$lib/types/travel-dataset';
-  
+
+  let isSidebarOpen = false;
+
   let travelId = '';
   let travel: Travel | null = null;
   let isLoading = true;
@@ -177,44 +179,104 @@
   });
 </script>
 
-<div class="container mx-auto p-4">
-  <h1 class="h1">Travel: {travelId}</h1>
-  
-  {#if isLoading}
-    <div class="text-center p-4">Loading travel data...</div>
-  {:else if error}
-    <div class="alert variant-filled-error">{error}</div>
-  {:else if travel}
-    <div class="mb-6">
-      <h2 class="h2">{travel.name || 'Travel'}</h2>
-      <p class="text-surface-500">
-        {new Date(travel.startDate).toLocaleDateString()} 
-        {travel.endDate ? `- ${new Date(travel.endDate).toLocaleDateString()}` : ''}
-      </p>
-      {#if travel.description}
-        <p class="italic mt-2">{travel.description}</p>
-      {/if}
-    </div>
-    
-    <!-- Map and Photo Viewer Layout -->
-    <div class="card overflow-hidden mb-8" style="height: 600px;">
-      <div class="h-full flex">
-        <!-- Map Section - takes remaining space or full width when no photo selected -->
+{#if isLoading}
+  <div class="text-center p-4">Loading travel data...</div>
+{:else if error}
+  <div class="alert variant-filled-error">{error}</div>
+{:else if travel}
+  <div class="relative h-screen w-screen overflow-hidden flex">
+    <!-- Backdrop (for mobile) -->
+    {#if isSidebarOpen}
+      <div
+        class="fixed inset-0 z-10 bg-black/50 lg:hidden"
+        on:click={() => (isSidebarOpen = false)}
+        role="presentation"
+      ></div>
+    {/if}
+
+    <!-- Sidebar -->
+    <aside
+      class="sidebar-bg scrollbar-none absolute z-20 h-full transform {isSidebarOpen
+        ? 'translate-x-0'
+        : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 w-full sm:w-96 border-surface-200-700-token"
+    >
+      <div class="p-4 h-full overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="h2 text-on-surface-token">Timeline</h2>
+          <button class="lg:hidden btn btn-sm" on:click={() => (isSidebarOpen = false)}>
+            <!-- Close Icon -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-6 h-6"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <TimelineSection
+          {travel}
+          {selectedItinerary}
+          {selectedPhotos}
+          onItinerarySelect={handleItinerarySelect}
+          onDayClick={handleDayClick}
+          onPhotoClick={handlePhotoClick}
+          onPhotoSelect={handlePhotoSelect}
+        />
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen">
+      <!-- Header -->
+      <header class="card p-2 rounded-none flex items-center justify-between">
+        <div class="flex items-center">
+          <button class="lg:hidden btn btn-sm mr-4" on:click={() => (isSidebarOpen = true)}>
+            <!-- Menu Icon -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-6 h-6"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+              />
+            </svg>
+          </button>
+          <h1 class="h1 text-lg text-on-surface-token">{travel.name || 'Travel'}</h1>
+        </div>
+        <div class="text-sm text-surface-600-300-token">
+          {new Date(travel.startDate).toLocaleDateString()}
+          {travel.endDate ? `- ${new Date(travel.endDate).toLocaleDateString()}` : ''}
+        </div>
+      </header>
+
+      <!-- Map and Photo Panel Container -->
+      <div class="flex-1 flex overflow-hidden">
+        <!-- Map Section -->
         <div class="flex-1 relative">
           <div class="absolute inset-0">
-            <TravelMap 
-              {travel} 
+            <TravelMap
+              {travel}
               {selectedPhotos}
               {selectedPhoto}
               onPhotoClusterClick={handlePhotoClusterClick}
             />
           </div>
         </div>
-        
-        <!-- Photo Side Panel - only visible when photo is selected -->
+
+        <!-- Photo Side Panel -->
         {#if selectedPhoto}
-          <div class="w-96 flex-shrink-0">
-            <PhotoSidePanel 
+          <div class="w-96 flex-shrink-0 bg-surface-100-800-token overflow-y-auto">
+            <PhotoSidePanel
               {selectedPhoto}
               cluster={selectedCluster}
               itinerary={selectedPhotoItinerary}
@@ -226,23 +288,14 @@
           </div>
         {/if}
       </div>
-    </div>
-    
-    <!-- Layout for Timeline (now includes photos) -->
-    <div class="card p-6">
-      <TimelineSection 
-        {travel}
-        {selectedItinerary}
-        {selectedPhotos}
-        onItinerarySelect={handleItinerarySelect}
-        onDayClick={handleDayClick}
-        onPhotoClick={handlePhotoClick}
-        onPhotoSelect={handlePhotoSelect}
-      />
-    </div>
-  {:else}
-    <div class="text-center p-4">No travel data available</div>
-  {/if}
-</div>
+    </main>
+  </div>
+{:else}
+  <div class="text-center p-4 text-on-surface-token">No travel data available</div>
+{/if}
 
-<!-- No custom styles needed - using Skeleton + Tailwind -->
+<style>
+  .sidebar-bg {
+    background-color: var(--color-surface-100-900)
+  }
+</style>

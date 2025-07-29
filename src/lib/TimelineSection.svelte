@@ -109,12 +109,11 @@
   }
 </script>
 
-<div class="space-y-4">
-  <div class="flex items-center justify-between">
-    <h3 class="h3">Timeline & Photos</h3>
+  <div class="space-y-4">
+  <div class="flex items-center justify-end">
     <div class="flex items-center gap-2">
       {#if timelineData.length > 0}
-        <span class="text-sm text-surface-500">
+        <span class="text-sm text-surface-600-300-token">
           {timelineData.length} itinerary{timelineData.length !== 1 ? 'ies' : ''}
           {#if totalPhotos > 0}
             • {totalPhotos} photos
@@ -129,7 +128,7 @@
   
   {#if timelineData.length === 0}
     <div class="card p-8">
-      <p class="text-center text-surface-500">No itinerary data available for this travel.</p>
+      <p class="text-center text-surface-600-300-token">No itinerary data available for this travel.</p>
     </div>
   {:else}
     <div class="space-y-4">
@@ -144,14 +143,14 @@
             <div class="flex items-center gap-4 text-left">
               <div class="w-4 h-16 rounded-sm flex-shrink-0" style="background-color: {color};"></div>
               <div class="flex flex-col gap-1">
-                <h4 class="h4">{itinerary.name || `Itinerary ${itinerary.id}`}</h4>
-                <p class="text-sm text-surface-600">
+                <h4 class="h4 text-on-surface-token">{itinerary.name || `Itinerary ${itinerary.id}`}</h4>
+                <p class="text-sm text-surface-600-300-token">
                   {formatDateLong(new Date(itinerary.startDate))}
                   {#if itinerary.endDate && itinerary.endDate !== itinerary.startDate}
                     → {formatDateLong(new Date(itinerary.endDate))}
                   {/if}
                 </p>
-                <p class="text-xs text-surface-500">
+                <p class="text-xs text-surface-500-400-token">
                   {days.length} day{days.length !== 1 ? 's' : ''} • {totalPhotos} photo{totalPhotos !== 1 ? 's' : ''}
                 </p>
               </div>
@@ -178,15 +177,15 @@
                       disabled={day.photoCount === 0}
                     >
                       <div class="flex flex-col items-center min-w-[3rem]">
-                        <div class="text-2xl font-bold leading-none">{day.date.getDate()}</div>
-                        <div class="text-xs text-surface-500 uppercase">{formatDateShort(day.date).split(' ')[0]}</div>
+                        <div class="text-2xl font-bold leading-none text-on-surface-token">{day.date.getDate()}</div>
+                        <div class="text-xs text-surface-500-400-token uppercase">{formatDateShort(day.date).split(' ')[0]}</div>
                       </div>
                       
                       <div class="flex-1 space-y-1">
-                        <div class="font-medium">{formatDateShort(day.date)}</div>
+                        <div class="font-medium text-on-surface-token">{formatDateShort(day.date)}</div>
                         
                         {#if day.photoCount > 0}
-                          <div class="text-sm text-primary-600 font-medium">
+                          <div class="text-sm text-primary-600-300-token font-medium">
                             {day.photoCount} photo{day.photoCount !== 1 ? 's' : ''}
                           </div>
                           
@@ -200,22 +199,20 @@
                             </div>
                           {/if}
                         {:else}
-                          <div class="text-sm text-surface-400 italic">No photos</div>
+                          <div class="text-sm text-surface-400-500-token italic">No photos</div>
                         {/if}
                       </div>
                     </button>
 
                     <!-- Photos for this day -->
                     {#if day.photoCount > 0}
-                      <div class="ml-16 space-y-3">
+                          <div class="ml-16 space-y-3">
                         {#each day.photoClusters as cluster}
                           {#if cluster.photos.length > 0}
                             <div class="space-y-2">
-                              <div class="text-sm font-medium text-surface-600">
+                              <div class="text-sm font-medium text-surface-600-300-token">
                                 📍 {cluster.interestPointName || 'Unknown location'}
-                              </div>
-                              
-                              <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+                              </div>                              <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-6 xl:grid-cols-8 gap-2">
                                 {#each cluster.photos as photo}
                                   {@const isSelected = selectedPhotos.includes(photo.id)}
                                   
