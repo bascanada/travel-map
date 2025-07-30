@@ -26,6 +26,7 @@
   export let selectedPhotos: string[] = []; // IDs of photos to highlight
   export let selectedPhoto: Photo | null = null; // Currently selected photo to center on
   export let onPhotoClusterClick: ((cluster: PhotoCluster, itinerary: Itinerary) => void) | null = null;
+  export let onPhotoClick: ((photo: Photo, cluster: PhotoCluster, itinerary: Itinerary) => void) | null = null;
   
   // Array of colors for multiple itineraries
   const routeColors = [
@@ -144,12 +145,65 @@
               .setLngLat([cluster.position.longitude, cluster.position.latitude])
               .addTo(map);
             
-            // Add click handler if callback is provided
-            if (onPhotoClusterClick) {
-              markerElement.addEventListener('click', () => {
-                onPhotoClusterClick?.(cluster, itinerary);
+                        // Create and add the marker
+            const marker = new maplibregl.Marker(markerElement)
+              .setLngLat([cluster.position.longitude, cluster.position.latitude])
+              .addTo(map);
+            
+            // Store cluster and itinerary data on the marker element for the click handler
+            markerElement.setAttribute('data-cluster-id', cluster.photos[0]?.id || 'unknown');
+            (markerElement as any)._clusterData = { cluster, itinerary };
+            
+            // Try multiple approaches to handle clicks
+            
+            // Method 1: Direct DOM event listener
+            markerElement.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const clusterName = cluster.interestPointName || `Cluster with ${cluster.photos.length} photos`;
+              console.log('DOM Click - Marker clicked:', clusterName, 'with', cluster.photos.length, 'photos');
+              handleMarkerClick(cluster, itinerary);
+            });
+            
+            // Method 2: Using mousedown instead of click
+            markerElement.addEventListener('mousedown', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('MouseDown event triggered');
+              handleMarkerClick(cluster, itinerary);
+            });
+            
+            // Method 3: Add to inner element as well
+            const innerElement = markerElement.querySelector('.photo-marker-inner, .photo-marker-selected');
+            if (innerElement) {
+              innerElement.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Inner element clicked');
+                handleMarkerClick(cluster, itinerary);
               });
             }
+            
+            // Helper function to handle marker clicks
+            function handleMarkerClick(cluster: PhotoCluster, itinerary: Itinerary) {
+              const clusterName = cluster.interestPointName || `Cluster with ${cluster.photos.length} photos`;
+              console.log('handleMarkerClick called for:', clusterName);
+              
+              if (onPhotoClusterClick) {
+                onPhotoClusterClick(cluster, itinerary);
+              }
+              
+              // If there's only one photo in the cluster, also trigger photo click
+              if (cluster.photos.length === 1 && onPhotoClick) {
+                console.log('Single photo cluster - opening photo:', cluster.photos[0].id);
+                onPhotoClick(cluster.photos[0], cluster, itinerary);
+              } else if (cluster.photos.length > 1) {
+                console.log('Multi-photo cluster - selecting', cluster.photos.length, 'photos');
+              }
+            }
+            
+            // Debug: Log that click handler was attached
+            console.log('Click handler attached for cluster:', cluster.interestPointName || `Cluster with ${cluster.photos.length} photos`, 'at position:', cluster.position);
             
             // Add popup with information about the photo cluster
             const clusterName = cluster.interestPointName || `Photo Cluster (${cluster.photos.length} photos)`;
@@ -164,10 +218,13 @@
             
             const popup = new maplibregl.Popup({ offset: 25 })
               .setHTML(`
-                <h3>${clusterName}</h3>
-                <p><strong>Itinerary:</strong> ${itineraryName}</p>
-                <p><strong>Date:</strong> ${firstPhotoDate}</p>
-                <p>${cluster.photos.length} photo${cluster.photos.length > 1 ? 's' : ''}</p>
+                <div>
+                  <h3>${clusterName}</h3>
+                  <p><strong>Itinerary:</strong> ${itineraryName}</p>
+                  <p><strong>Date:</strong> ${firstPhotoDate}</p>
+                  <p>${cluster.photos.length} photo${cluster.photos.length > 1 ? 's' : ''}</p>
+                  ${cluster.photos.length === 1 ? '<p style="margin-top: 8px; font-size: 11px; color: #dc2626;">Click marker to view photo</p>' : '<p style="margin-top: 8px; font-size: 11px; color: #dc2626;">Click marker to select photos</p>'}
+                </div>
               `);
             
             marker.setPopup(popup);
@@ -214,6 +271,11 @@
 
     // Wait for map to load
     map.on('load', () => {
+      // Add global click handler to debug clicks
+      map.on('click', (e) => {
+        console.log('Map clicked at:', e.lngLat);
+      });
+      
       // Add all routes from the travel data
       routeFeatures.forEach((route, index) => {
         const sourceId = `route-${index}`;
@@ -339,41 +401,89 @@
   /* MapLibre GL specific styles that can't be replaced with Tailwind */
   :global(.photo-marker) {
     cursor: pointer;
+    pointer-events: auto;
   }
   
   :global(.photo-marker-inner) {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
-    background-color: rgba(56, 135, 190, 0.8);
+    width: 32px;
+    height: 32px;
+    background-color: #3887be !important;
     border-radius: 50%;
-    border: 2px solid white;
-    color: white;
+    border: 3px solid white;
+    color: white !important;
     font-weight: bold;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    font-size: 12px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2);
     transition: all 0.2s ease;
+    pointer-events: auto;
   }
   
   :global(.photo-marker-inner:hover) {
-    background-color: rgb(56, 135, 190);
-    transform: scale(1.1);
+    background-color: #4a96d1 !important;
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
   }
   
   :global(.photo-marker-selected) {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
-    background-color: rgba(255, 140, 0, 0.9);
+    width: 36px;
+    height: 36px;
+    background-color: #ff8c00 !important;
     border-radius: 50%;
-    border: 3px solid #ff8c00;
-    color: white;
+    border: 3px solid white;
+    color: white !important;
     font-weight: bold;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+    font-size: 13px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
     transition: all 0.2s ease;
     transform: scale(1.1);
+    animation: pulse 2s infinite;
+    pointer-events: auto;
+  }
+
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3), 0 0 0 0 rgba(255, 140, 0, 0.7);
+    }
+    70% {
+      box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3), 0 0 0 10px rgba(255, 140, 0, 0);
+    }
+    100% {
+      box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3), 0 0 0 0 rgba(255, 140, 0, 0);
+    }
+  }
+  
+  /* Popup styling */
+  :global(.maplibregl-popup-content) {
+    background-color: white;
+    color: #333;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #ddd;
+  }
+  
+  :global(.maplibregl-popup-content h3) {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  :global(.maplibregl-popup-content p) {
+    margin: 4px 0;
+    font-size: 12px;
+    color: #555;
+  }
+  
+  :global(.maplibregl-popup-content strong) {
+    color: #dc2626;
   }
 </style>

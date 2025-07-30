@@ -37,6 +37,13 @@
     )
   ) || [];
 
+  // Debug: Log when selectedPhoto changes
+  $: if (selectedPhoto) {
+    console.log('selectedPhoto changed to:', selectedPhoto.id);
+  } else {
+    console.log('selectedPhoto cleared');
+  }
+
   // Navigation helpers
   $: canNavigate = {
     previous: currentPhotoIndex > 0,
@@ -107,7 +114,8 @@
   }
   
   function handlePhotoClick(photo: Photo, cluster: PhotoCluster, itinerary: Itinerary) {
-    console.log('Photo clicked:', photo.id, 'from', cluster.interestPointName);
+    console.log('handlePhotoClick called:', photo.id, 'from', cluster.interestPointName);
+    console.log('Current allPhotosForNavigation length:', allPhotosForNavigation.length);
     
     // Close sidebar when photo is selected to prevent collision
     isSidebarOpen = false;
@@ -117,11 +125,16 @@
       item => item.photo.id === photo.id
     );
     
+    console.log('Photo index found:', photoIndex);
+    
     if (photoIndex !== -1) {
       currentPhotoIndex = photoIndex;
       selectedPhoto = photo;
       selectedCluster = cluster;
       selectedPhotoItinerary = itinerary;
+      console.log('Photo viewer should now be open with:', selectedPhoto.id);
+    } else {
+      console.error('Photo not found in navigation array');
     }
   }
   
@@ -270,6 +283,7 @@
               {selectedPhotos}
               {selectedPhoto}
               onPhotoClusterClick={handlePhotoClusterClick}
+              onPhotoClick={handlePhotoClick}
             />
           </div>
         </div>
