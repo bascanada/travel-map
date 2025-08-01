@@ -187,15 +187,9 @@
               if (onPhotoClusterClick) {
                 onPhotoClusterClick(cluster, itinerary);
               }
-              // If there's only one photo in the cluster, also trigger photo click
-              if (cluster.photos.length === 1 && onPhotoClick) {
-                console.log('Single photo cluster - opening photo:', cluster.photos[0].id);
+              // Always select the first photo in the cluster
+              if (onPhotoClick && cluster.photos.length > 0) {
                 onPhotoClick(cluster.photos[0], cluster, itinerary);
-                // Close the popup for this marker
-                marker.getPopup()?.remove();
-              } else if (cluster.photos.length > 1) {
-                console.log('Multi-photo cluster - selecting', cluster.photos.length, 'photos');
-                // Close the popup for this marker
                 marker.getPopup()?.remove();
               }
             }
