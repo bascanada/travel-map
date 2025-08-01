@@ -19,7 +19,7 @@
     class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
     transition:fly={{ x: 300, duration: 300 }}
   >
-    <div class="bg-surface-50 dark:bg-surface-900 rounded-lg shadow-xl max-w-4xl max-h-[90vh] w-full overflow-hidden">
+  <div class="bg-surface-50 dark:bg-surface-900 rounded-lg shadow-xl max-w-4xl max-h-screen h-[90vh] w-full overflow-hidden flex flex-col">
       <!-- Header -->
       <div class="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
         <div class="flex-1">
@@ -42,11 +42,12 @@
 
       <!-- Image and navigation -->
       <div class="relative">
-        <div class="flex items-center justify-center bg-black min-h-[400px] max-h-[60vh]">
+  <div class="flex-1 flex items-center justify-center bg-black w-full h-full">
           <img 
             src={selectedPhoto.cloudinary?.optimized_url || getImageUrl(selectedPhoto.url, 'large')} 
             alt={selectedPhoto.description || `Photo from ${cluster?.interestPointName || 'travel'}`}
-            class="max-w-full max-h-full object-contain"
+            class="object-contain"
+            style="width:100%;height:100%;"
             loading="lazy"
             crossorigin="anonymous"
           />

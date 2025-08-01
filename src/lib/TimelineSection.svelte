@@ -1,4 +1,5 @@
 <script lang="ts">
+  export let selectedPhoto: Photo | null = null;
   import type { Travel, Itinerary, PhotoCluster, Photo } from './types/travel-dataset';
   import { getImageUrl } from './imageUtils';
   
@@ -80,6 +81,7 @@
   }
   
   function handlePhotoClick(photo: Photo, cluster: PhotoCluster, itinerary: Itinerary) {
+    selectedPhoto = photo;
     onPhotoClick?.(photo, cluster, itinerary);
   }
   
@@ -202,8 +204,11 @@
                               {/if}
                               <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
                                 {#each cluster.photos as photo}
+                                  {@const isSelected = selectedPhoto && selectedPhoto.id === photo.id}
                                   <div 
-                                    class="relative group cursor-pointer overflow-hidden rounded-md hover:shadow-md transition-all duration-200"
+                                    class="relative group cursor-pointer overflow-hidden rounded-md hover:shadow-md transition-all duration-200 border-2"
+                                    class:border-primary-500={isSelected}
+                                    class:border-transparent={!isSelected}
                                     role="button"
                                     tabindex="0"
                                     on:click={() => handlePhotoClick(photo, cluster, itinerary)}

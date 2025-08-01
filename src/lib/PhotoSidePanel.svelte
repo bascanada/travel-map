@@ -45,6 +45,7 @@
           src={selectedPhoto.cloudinary?.optimized_url || getImageUrl(selectedPhoto.url, 'large')} 
           alt={selectedPhoto.description || `Photo from ${cluster?.interestPointName || 'travel'}`}
           class="max-w-full max-h-full object-contain"
+          style="width:100%;height:100%;"
           loading="lazy"
           crossorigin="anonymous"
         />

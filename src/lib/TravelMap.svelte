@@ -145,10 +145,6 @@
               .setLngLat([cluster.position.longitude, cluster.position.latitude])
               .addTo(map);
             
-                        // Create and add the marker
-            const marker = new maplibregl.Marker(markerElement)
-              .setLngLat([cluster.position.longitude, cluster.position.latitude])
-              .addTo(map);
             
             // Store cluster and itinerary data on the marker element for the click handler
             markerElement.setAttribute('data-cluster-id', cluster.photos[0]?.id || 'unknown');

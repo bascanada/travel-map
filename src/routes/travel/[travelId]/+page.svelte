@@ -236,6 +236,7 @@
         <TimelineSection
           {travel}
           {selectedItinerary}
+          selectedPhoto={selectedPhoto}
           onItinerarySelect={handleItinerarySelect}
           onDayClick={handleDayClick}
           onPhotoClick={handlePhotoClick}
@@ -290,8 +291,8 @@
 
         <!-- Photo Side Panel -->
         {#if selectedPhoto}
-          <!-- Mobile: Overlay on top of map -->
-          <div class="absolute inset-0 z-30 bg-surface-50-900-token md:hidden">
+          <!-- Mobile: Overlay on top of map, but below sidebar -->
+          <div class="absolute inset-0 z-10 bg-surface-50-900-token md:hidden">
             <PhotoSidePanel
               {selectedPhoto}
               cluster={selectedCluster}
