@@ -184,17 +184,19 @@
             function handleMarkerClick(cluster: PhotoCluster, itinerary: Itinerary) {
               const clusterName = cluster.interestPointName || `Cluster with ${cluster.photos.length} photos`;
               console.log('handleMarkerClick called for:', clusterName);
-              
               if (onPhotoClusterClick) {
                 onPhotoClusterClick(cluster, itinerary);
               }
-              
               // If there's only one photo in the cluster, also trigger photo click
               if (cluster.photos.length === 1 && onPhotoClick) {
                 console.log('Single photo cluster - opening photo:', cluster.photos[0].id);
                 onPhotoClick(cluster.photos[0], cluster, itinerary);
+                // Close the popup for this marker
+                marker.getPopup()?.remove();
               } else if (cluster.photos.length > 1) {
                 console.log('Multi-photo cluster - selecting', cluster.photos.length, 'photos');
+                // Close the popup for this marker
+                marker.getPopup()?.remove();
               }
             }
             
