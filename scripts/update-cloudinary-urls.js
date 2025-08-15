@@ -144,7 +144,8 @@ function updateAllTravelData(travelId = null) {
             return; // Skip if we're only processing a specific travel
         }
         
-        console.log(`\n📂 Processing travel: ${travelDir}`);
+        console.log(`
+📂 Processing travel: ${travelDir}`);
         const travelPath = path.join(staticDataPath, travelDir);
         
         // Get all itinerary directories within this travel

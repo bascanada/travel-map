@@ -4,11 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "extract-metadata": "node extract-image-metadata.js",
-    "generate-travel": "node generate-travel-draft.js",
-    "test-gps": "node test-gps-structure.js",
-    "process-all": "node process-all-travel-data.js",
-    "update-index": "node update-travel-index.js"
+    "process-all": "node process-all-travel-data.js"
   },
   "dependencies": {
     "cloudinary": "^2.5.1",

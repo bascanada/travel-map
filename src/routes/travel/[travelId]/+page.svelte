@@ -155,14 +155,6 @@
     // Could filter photos by date or scroll to that date in the photo section
   }
 
-  // Photo viewer handlers
-  function closePhotoViewer() {
-    selectedPhoto = null;
-    selectedCluster = null;
-    selectedPhotoItinerary = null;
-    currentPhotoIndex = 0;
-  }
-
   function showPreviousPhoto() {
     if (canNavigate.previous) {
       currentPhotoIndex--;
@@ -302,7 +294,6 @@
               cluster={selectedCluster}
               itinerary={selectedPhotoItinerary}
               {canNavigate}
-              onClose={closePhotoViewer}
               onPrevious={showPreviousPhoto}
               onNext={showNextPhoto}
             />
@@ -315,7 +306,6 @@
               cluster={selectedCluster}
               itinerary={selectedPhotoItinerary}
               {canNavigate}
-              onClose={closePhotoViewer}
               onPrevious={showPreviousPhoto}
               onNext={showNextPhoto}
             />

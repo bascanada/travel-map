@@ -1,24 +1,6 @@
 // scripts/generate-travel-draft.js
 import fs from 'fs-extra';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Get the directory name
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.resolve(__dirname, '..');
-
-// Debug mode - set to true for verbose logging
-const DEBUG = true;
-
-function debug(message, data) {
-  if (DEBUG) {
-    if (data) {
-      console.log(`DEBUG: ${message}`, JSON.stringify(data, null, 2));
-    } else {
-      console.log(`DEBUG: ${message}`);
-    }
-  }
-}
 
 /**
  * Parse date time string from EXIF format to ISO 8601
@@ -113,8 +95,6 @@ function identifyPhotoClusters(photosMetadata) {
   // Add the last cluster
   clusters.push(currentCluster);
   
-  // For now, let's say we don't have independent photos (all are clustered)
-  // In a more advanced implementation, you might want to identify outliers
   return { clusters, independentPhotos: [] };
 }
 
@@ -153,24 +133,19 @@ async function generateItineraryDraft(directoryPath, travelId, urlRoot) {
     const metadataFilePath = path.join(directoryPath, `${directoryName}-metadata.json`);
     
     if (!fs.existsSync(metadataFilePath)) {
-      console.error(`Metadata file not found: ${metadataFilePath}`);
       return null;
     }
     
-    console.log(`Generating itinerary draft from ${metadataFilePath}`);
     const metadata = await fs.readJson(metadataFilePath);
     
-    // Get all photos with valid metadata
     const validPhotos = Object.values(metadata).filter(photo => 
       photo.coordinates && photo.dateTime
     );
     
     if (validPhotos.length === 0) {
-      console.error(`No valid photos with coordinates and date found in ${directoryPath}.`);
       return null;
     }
     
-    // Sort photos by date
     validPhotos.sort((a, b) => {
       const dateA = new Date(a.dateTime.replace(/:/g, '-').replace(' ', 'T'));
       const dateB = new Date(b.dateTime.replace(/:/g, '-').replace(' ', 'T'));
@@ -180,10 +155,8 @@ async function generateItineraryDraft(directoryPath, travelId, urlRoot) {
     const startDate = parseExifDateTime(validPhotos[0].dateTime);
     const endDate = parseExifDateTime(validPhotos[validPhotos.length - 1].dateTime);
     
-    // Identify clusters and generate path
     const { clusters: photoClusters, independentPhotos } = identifyPhotoClusters(metadata);
     
-    // Generate path from clusters
     let routePath = [];
     if (photoClusters.length > 0) {
       routePath = generateRoutePath(photoClusters);
@@ -191,7 +164,6 @@ async function generateItineraryDraft(directoryPath, travelId, urlRoot) {
     
     const travelDirName = path.basename(path.dirname(directoryPath));
     
-    // Create the itinerary
     const itinerary = {
       id: directoryName,
       name: directoryName.replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase()),
@@ -222,7 +194,6 @@ async function generateItineraryDraft(directoryPath, travelId, urlRoot) {
       description: `Auto-generated itinerary for ${directoryName}`
     };
     
-    // Write the itinerary file
     const itineraryFilePath = path.join(directoryPath, `${directoryName}.json`);
     await fs.writeJson(itineraryFilePath, itinerary, { spaces: 2 });
     console.log(`Created itinerary draft: ${itineraryFilePath}`);
@@ -242,9 +213,7 @@ async function generateItineraryDraft(directoryPath, travelId, urlRoot) {
 async function generateTravelDraft(directoryPath, urlRoot) {
   try {
     const directoryName = path.basename(directoryPath);
-    console.log(`Generating travel draft for ${directoryName}`);
     
-    // Get all subdirectories (potential itineraries)
     const items = await fs.readdir(directoryPath);
     const subdirectories = [];
     
@@ -261,11 +230,9 @@ async function generateTravelDraft(directoryPath, urlRoot) {
     }
     
     if (subdirectories.length === 0) {
-      console.error(`No subdirectories (itineraries) found in ${directoryPath}`);
       return;
     }
     
-    // Process each itinerary subdirectory
     const itineraryNames = [];
     let firstItineraryWithDates = null;
     let lastItineraryWithDates = null;
@@ -276,7 +243,6 @@ async function generateTravelDraft(directoryPath, urlRoot) {
       if (itinerary) {
         itineraryNames.push(subdir.name);
         
-        // Track the earliest start date and latest end date
         if (!firstItineraryWithDates || new Date(itinerary.startDate) < new Date(firstItineraryWithDates.startDate)) {
           firstItineraryWithDates = itinerary;
         }
@@ -289,11 +255,9 @@ async function generateTravelDraft(directoryPath, urlRoot) {
     }
     
     if (itineraryNames.length === 0) {
-      console.error(`No valid itineraries generated for ${directoryPath}`);
       return;
     }
     
-    // Create the travel document with references to the itineraries
     const travel = {
       id: directoryName,
       name: directoryName.replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase()),
@@ -303,21 +267,20 @@ async function generateTravelDraft(directoryPath, urlRoot) {
       description: `Auto-generated travel document for ${directoryName}`
     };
     
-    // Write the travel file
     const travelFilePath = path.join(directoryPath, `travel.json`);
     await fs.writeJson(travelFilePath, travel, { spaces: 2 });
     console.log(`Created travel draft: ${travelFilePath}`);
     
   } catch (error) {
     console.error(`Error generating travel draft for ${directoryPath}:`, error);
+    throw error;
   }
-}/**
- * Process all travel directories in the test-data folder
+}
+
+/**
+ * Process all travel directories in the folder
  */
-
 async function processAllDirectories(rootDir, urlRoot) {
-  console.log(`Starting travel draft generation for ${rootDir}`);
-
   try {
     const items = await fs.readdir(rootDir);
 
@@ -329,51 +292,21 @@ async function processAllDirectories(rootDir, urlRoot) {
         await generateTravelDraft(itemPath, urlRoot);
       }
     }
-
-    console.log('Travel draft generation completed successfully');
   } catch (error) {
     console.error('Error during travel draft generation:', error);
+    throw error;
   }
 }
 
 /**
- * Process a specific travel directory
- * @param {string} directoryName - Name of travel directory to process
+ * Main function to generate all travel drafts
  */
-
-async function processDirectory(rootDir, directoryName, urlRoot) {
-  const directoryPath = path.join(rootDir, directoryName);
-
-  if (!fs.existsSync(directoryPath)) {
-    console.error(`Directory not found: ${directoryPath}`);
-    return;
-  }
-
-  console.log(`Processing travel directory: ${directoryPath}`);
-  await generateTravelDraft(directoryPath, urlRoot);
-}
-
-/**
- * Main function
- */
-
-async function main() {
-  // Get command line arguments
-  const args = process.argv.slice(2);
-  if (args.length === 0) {
-    throw new Error('You must provide a root data directory as the first argument. Example: node generate-travel-draft.js /app/data');
-  }
-  const rootDir = path.isAbsolute(args[0]) ? args[0] : path.resolve(process.cwd(), args[0]);
+export async function generateAllTravelDrafts(rootDir) {
   const urlRoot = path.basename(rootDir);
-
-  if (args.length > 1) {
-    // Process specific travel directory
-    await processDirectory(rootDir, args[1], urlRoot);
-  } else {
-    // Process all travel directories
+  try {
     await processAllDirectories(rootDir, urlRoot);
+  } catch (error) {
+    console.error('Error during travel draft generation:', error);
+    throw error;
   }
 }
-
-// Run the main function
-main();

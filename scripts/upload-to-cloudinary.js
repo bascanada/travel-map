@@ -201,7 +201,8 @@ async function main() {
     const travelJsonPath = path.join(sourceDir, `${path.basename(sourceDir)}.json`);
     await updateTravelData(results, travelJsonPath);
     
-    console.log(`\n🎉 Upload complete! ${results.length} images uploaded to Cloudinary.`);
+    console.log(`
+🎉 Upload complete! ${results.length} images uploaded to Cloudinary.`);
     console.log(`📄 Results saved to: ${resultsFile}`);
     
   } catch (error) {
