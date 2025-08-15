@@ -125,10 +125,10 @@ function updateItineraryWithCloudinaryUrls(itineraryPath) {
  * @param {string} travelId - Optional: specific travel ID to process
  */
 function updateAllTravelData(travelId = null) {
-    const staticDataPath = path.join(__dirname, '..', 'static', 'data');
+    const staticDataPath = path.join(process.cwd(), 'data');
     
     if (!fs.existsSync(staticDataPath)) {
-        console.error('❌ Static data directory not found:', staticDataPath);
+        console.error('❌ Data directory not found:', staticDataPath);
         process.exit(1);
     }
     
