@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   import { page } from '$app/stores';
   import { getFullPath, getTravelIndexUrl } from '$lib';
   import TravelMap from '$lib/TravelMap.svelte';
@@ -49,6 +49,9 @@
     previous: currentPhotoIndex > 0,
     next: currentPhotoIndex < allPhotosForNavigation.length - 1
   };
+  
+
+  
 
   // Helper function to fetch travel data
   async function fetchTravelData(id: string) {
@@ -192,6 +195,7 @@
       error = err instanceof Error ? err.message : 'Failed to load travel data';
       isLoading = false;
     }
+
   });
 </script>
 

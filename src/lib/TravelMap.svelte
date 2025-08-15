@@ -25,7 +25,6 @@
   export let travel: Travel | null = null;
   export let selectedPhotos: string[] = []; // IDs of photos to highlight
   export let selectedPhoto: Photo | null = null; // Currently selected photo to center on
-  export let onPhotoClusterClick: ((cluster: PhotoCluster, itinerary: Itinerary) => void) | null = null;
   export let onPhotoClick: ((photo: Photo, cluster: PhotoCluster, itinerary: Itinerary) => void) | null = null;
   
   // Array of colors for multiple itineraries
@@ -145,58 +144,6 @@
               .setLngLat([cluster.position.longitude, cluster.position.latitude])
               .addTo(map);
             
-            
-            // Store cluster and itinerary data on the marker element for the click handler
-            markerElement.setAttribute('data-cluster-id', cluster.photos[0]?.id || 'unknown');
-            (markerElement as any)._clusterData = { cluster, itinerary };
-            
-            // Try multiple approaches to handle clicks
-            
-            // Method 1: Direct DOM event listener
-            markerElement.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const clusterName = cluster.interestPointName || `Cluster with ${cluster.photos.length} photos`;
-              console.log('DOM Click - Marker clicked:', clusterName, 'with', cluster.photos.length, 'photos');
-              handleMarkerClick(cluster, itinerary);
-            });
-            
-            // Method 2: Using mousedown instead of click
-            markerElement.addEventListener('mousedown', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              console.log('MouseDown event triggered');
-              handleMarkerClick(cluster, itinerary);
-            });
-            
-            // Method 3: Add to inner element as well
-            const innerElement = markerElement.querySelector('.photo-marker-inner, .photo-marker-selected');
-            if (innerElement) {
-              innerElement.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Inner element clicked');
-                handleMarkerClick(cluster, itinerary);
-              });
-            }
-            
-            // Helper function to handle marker clicks
-            function handleMarkerClick(cluster: PhotoCluster, itinerary: Itinerary) {
-              const clusterName = cluster.interestPointName || `Cluster with ${cluster.photos.length} photos`;
-              console.log('handleMarkerClick called for:', clusterName);
-              if (onPhotoClusterClick) {
-                onPhotoClusterClick(cluster, itinerary);
-              }
-              // Always select the first photo in the cluster
-              if (onPhotoClick && cluster.photos.length > 0) {
-                onPhotoClick(cluster.photos[0], cluster, itinerary);
-                marker.getPopup()?.remove();
-              }
-            }
-            
-            // Debug: Log that click handler was attached
-            console.log('Click handler attached for cluster:', cluster.interestPointName || `Cluster with ${cluster.photos.length} photos`, 'at position:', cluster.position);
-            
             // Add popup with information about the photo cluster
             const clusterName = cluster.interestPointName || `Photo Cluster (${cluster.photos.length} photos)`;
             
@@ -215,11 +162,24 @@
                   <p><strong>Itinerary:</strong> ${itineraryName}</p>
                   <p><strong>Date:</strong> ${firstPhotoDate}</p>
                   <p>${cluster.photos.length} photo${cluster.photos.length > 1 ? 's' : ''}</p>
-                  ${cluster.photos.length === 1 ? '<p style="margin-top: 8px; font-size: 11px; color: #dc2626;">Click marker to view photo</p>' : '<p style="margin-top: 8px; font-size: 11px; color: #dc2626;">Click marker to select photos</p>'}
+                  <a href="#" class="popup-photo-link" style="margin-top: 8px; font-size: 11px; color: #dc2626; text-decoration: underline; cursor: pointer;">Click to view photo</a>
                 </div>
               `);
             
             marker.setPopup(popup);
+
+            popup.on('open', () => {
+              const link = popup.getElement().querySelector('.popup-photo-link');
+              if (link) {
+                link.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  if (onPhotoClick && cluster.photos.length > 0) {
+                    onPhotoClick(cluster.photos[0], cluster, itinerary);
+                    popup.remove();
+                  }
+                });
+              }
+            });
             
             // Store the marker reference
             markers = [...markers, marker];

@@ -42,7 +42,7 @@
     <div class="relative flex-1 min-h-0 bg-black">
       <div class="w-full h-full flex items-center justify-center p-4">
         <img 
-          src={selectedPhoto.cloudinary?.optimized_url || getImageUrl(selectedPhoto.url, 'large')} 
+          src={selectedPhoto.cloudinary?.secure_url || getImageUrl(selectedPhoto.url, 'large')} 
           alt={selectedPhoto.description || `Photo from ${cluster?.interestPointName || 'travel'}`}
           class="max-w-full max-h-full object-contain"
           style="width:100%;height:100%;"
